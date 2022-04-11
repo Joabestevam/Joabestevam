@@ -1,0 +1,34 @@
+body{
+    font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+    background-image:linear-gradient(45deg, rgb(0, 255, 221), rgb(195, 0, 255))
+}
+
+div{
+  background-color: rgba(0, 0, 0, 0.9);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%);
+  padding: 80px;
+  border-radius: 15px;
+  color: white;
+}
+input{
+  pad: 15px;
+  border:none;
+  outline: none;
+  font-size: 15px;
+}
+button{
+  background-color: blue;
+  border: none;
+  padding: 15px;
+  width: 80%;
+  border-radius: 10px;
+  color: white;
+  font-size: 15px;
+}
+button:hover{
+background-color: blue;
+cursor: pointer;
+}
