@@ -6,8 +6,7 @@
  <li> 🎯 Estudando para conseguir um estágio na área de desenvolvimento web                                                                                   
  <li> 👨‍💻TDI-Técnicas de Invasão
    
-   <a href="https://wakatime.com/badge/user/6da5891a-fb91-4acd-82a6-bff548bce890/project/00394a8f-614b-4b8c-9774-f56a473cf224"><img src="https://wakatime.com/badge/user/6da5891a-fb91-4acd-82a6-bff548bce890/project/00394a8f-614b-4b8c-9774-f56a473cf224.svg" alt="wakatime"></a>
- 
+ <a href="https://wakatime.com/badge/user/6da5891a-fb91-4acd-82a6-bff548bce890/project/6e811fdd-1522-41a9-9086-4ee45876fb8b"><img src="https://wakatime.com/badge/user/6da5891a-fb91-4acd-82a6-bff548bce890/project/6e811fdd-1522-41a9-9086-4ee45876fb8b.svg" alt="wakatime"></a>
  
 
   <a href="https://github.com/Joabestevam">
@@ -54,18 +53,8 @@
  <br />
  </kbd>
  </div>
-   
-  ##
+   #
  
-<div> 
-  <a href = "mailto:joabestevam18@gmail.com"><img src="https://img.shields.io/badge/-Gmail-%23333?style=for-the-badge&logo=gmail&logoColor=white" target="_blank"></a>
-  <a href="linkedin.com/in/joab-estevam-880999204/" target="_blank"><img src="https://img.shields.io/badge/-LinkedIn-%230077B5?style=for-the-badge&logo=linkedin&logoColor=white" target="_blank"></a>
- <a href="https://www.instagram.com/joabestevam__123/" target="_blank"><img src="https://img.shields.io/badge/-Instagram-%23E4405F?style=for-the-badge&logo=instagram&logoColor=white" target="_blank"></a>
-   
-	
- 
-</div>
-	
   ## 📊 Github Stats
 	
   <summary><b>💻 GitHub Profile Stats</b></summary>
@@ -76,7 +65,12 @@
   <br/>	
 	
   ##
- 
+  
+ <div  align="center"> 
+  <a href = "mailto:joabestevam18@gmail.com"><img src="https://img.shields.io/badge/-Gmail-%23333?style=for-the-badge&logo=gmail&logoColor=white" target="_blank"></a>
+  <a href="linkedin.com/in/joab-estevam-880999204/" target="_blank"><img src="https://img.shields.io/badge/-LinkedIn-%230077B5?style=for-the-badge&logo=linkedin&logoColor=white" target="_blank"></a>
+ <a href="https://www.instagram.com/joabestevam__123/" target="_blank"><img src="https://img.shields.io/badge/-Instagram-%23E4405F?style=for-the-badge&logo=instagram&logoColor=white" target="_blank"></a>
+</div>
   
   
   
