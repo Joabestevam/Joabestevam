@@ -2,7 +2,7 @@
 
 ## Opa, eu sou o Joab Estevam 😎
 
- <li> 💼 Sou estudante do 2º Ano Médio Técnico em Informática 
+ <li> 💼 Sou estudante do 3º Ano Médio Técnico em Informática 
  <li> 🎯 Estudando para conseguir um estágio na área de desenvolvimento web                                                                                   
  <li> 👨‍💻TDI-Técnicas de Invasão
    
