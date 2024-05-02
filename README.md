@@ -2,8 +2,8 @@
 
 ## Opa, eu sou o Joab Estevam 😎
 
- <li> 💼 Sou estudante do 3º Ano Médio Técnico em Informática 
- <li> 🎯 Estudando para conseguir um estágio na área de desenvolvimento web                                                                                   
+ <li> 💼Sou estudante de Análise e Desenvolvimento de Sistemas
+ <li> 🎯 Estudando para conseguir um estágio na área de Analista de Segurança                                                                                   
  <li> 👨‍💻TDI-Técnicas de Invasão
    
  <a href="https://wakatime.com/badge/user/6da5891a-fb91-4acd-82a6-bff548bce890/project/6e811fdd-1522-41a9-9086-4ee45876fb8b"><img src="https://wakatime.com/badge/user/6da5891a-fb91-4acd-82a6-bff548bce890/project/6e811fdd-1522-41a9-9086-4ee45876fb8b.svg" alt="wakatime"></a>
