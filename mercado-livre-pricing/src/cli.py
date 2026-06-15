@@ -10,80 +10,27 @@ from __future__ import annotations
 import argparse
 import csv
 import dataclasses
-import json
 import logging
 import sys
 from pathlib import Path
 
-from dotenv import load_dotenv
-
-from .ml_client import MLApiError, MLClient, MLCredentials
-from .models import CompetitorSnapshot, PriceSuggestion, ProductConfig
-from .pricing_engine import suggest_price
+from .ml_client import MLApiError
+from .models import PriceSuggestion
 from .product_finder import find_champions
+from .services import build_price_report, client_from_env, competitors_for, current_price, load_products
+from .pricing_engine import suggest_price
 
 logger = logging.getLogger(__name__)
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 
 
-def _load_products(config_path: Path) -> list[ProductConfig]:
-    raw = json.loads(config_path.read_text(encoding="utf-8"))
-    return [ProductConfig(**item) for item in raw]
-
-
-def _client_from_env(site_id: str = "MLB") -> MLClient:
-    load_dotenv()
-    return MLClient(site_id=site_id, credentials=MLCredentials.from_env())
-
-
-def _current_price(client: MLClient, config: ProductConfig) -> float | None:
-    if not config.item_id:
-        return None
-    try:
-        item = client.get_item(config.item_id)
-        return item.get("price")
-    except MLApiError as exc:
-        logger.warning("Nao foi possivel obter preco atual de %s: %s", config.item_id, exc)
-        return None
-
-
-def _competitors_for(client: MLClient, config: ProductConfig) -> list[CompetitorSnapshot]:
-    if not config.search_query:
-        return []
-    try:
-        page = client.search(config.search_query, limit=50)
-    except MLApiError as exc:
-        logger.warning("Falha ao buscar concorrentes para %r: %s", config.search_query, exc)
-        return []
-
-    snapshots = []
-    for result in page.get("results", []):
-        if config.item_id and result.get("id") == config.item_id:
-            continue  # nao comparar o produto com ele mesmo
-        snapshots.append(
-            CompetitorSnapshot(
-                item_id=result.get("id", ""),
-                title=result.get("title", ""),
-                price=result.get("price", 0.0),
-                sold_quantity=result.get("sold_quantity", 0) or 0,
-                free_shipping=bool(result.get("shipping", {}).get("free_shipping")),
-                seller_id=(result.get("seller") or {}).get("id"),
-            )
-        )
-    return snapshots
-
-
 def cmd_price_report(args: argparse.Namespace) -> int:
-    client = _client_from_env(args.site)
-    products = _load_products(Path(args.config))
+    client = client_from_env(args.site)
+    products = load_products(Path(args.config))
 
-    suggestions: list[PriceSuggestion] = []
-    for product in products:
-        current = _current_price(client, product)
-        competitors = _competitors_for(client, product)
-        suggestion = suggest_price(product, competitors, current_price=current)
-        suggestions.append(suggestion)
+    suggestions = build_price_report(client, products)
+    for suggestion in suggestions:
         _print_suggestion(suggestion)
 
     if args.output:
@@ -126,14 +73,14 @@ def _write_csv(path: Path, suggestions: list[PriceSuggestion]) -> None:
 
 
 def cmd_apply_prices(args: argparse.Namespace) -> int:
-    client = _client_from_env(args.site)
-    products = _load_products(Path(args.config))
+    client = client_from_env(args.site)
+    products = load_products(Path(args.config))
 
     for product in products:
         if not product.item_id:
             continue
-        current = _current_price(client, product)
-        competitors = _competitors_for(client, product)
+        current = current_price(client, product)
+        competitors = competitors_for(client, product)
         suggestion = suggest_price(product, competitors, current_price=current)
 
         if suggestion.action not in ("reduzir", "aumentar"):
@@ -156,7 +103,7 @@ def cmd_apply_prices(args: argparse.Namespace) -> int:
 
 
 def cmd_find_champions(args: argparse.Namespace) -> int:
-    client = _client_from_env(args.site)
+    client = client_from_env(args.site)
     queries = [q.strip() for q in args.queries.split(",") if q.strip()] if args.queries else None
 
     champions = find_champions(client, queries=queries, category_id=args.category, top_n=args.top)

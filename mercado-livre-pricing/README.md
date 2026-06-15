@@ -27,7 +27,27 @@ cp config/products.example.json config/products.json
 Edite `config/products.json` com os seus produtos (veja a estrutura de
 campos em `src/models.py::ProductConfig`).
 
-## Uso diario
+## Dashboard web (forma mais facil de usar)
+
+Para acessar tudo por uma pagina no navegador, sem usar linha de comando:
+
+```bash
+python -m src.webapp
+```
+
+Isso inicia um servidor local. Abra no navegador:
+
+- http://127.0.0.1:5000/ - relatorio de precos (tabela com piso, alvo, preco
+  sugerido, margem, concorrentes e a acao recomendada para cada produto).
+  Quando a acao for "reduzir" ou "aumentar", aparece um botao **Aplicar** que
+  atualiza o preco no Mercado Livre (requer credenciais OAuth configuradas).
+- http://127.0.0.1:5000/champions - busca de produtos campeoes (informe
+  termos separados por virgula, ou deixe vazio para usar as tendencias
+  atuais do Mercado Livre).
+
+O servidor roda apenas na sua maquina (`127.0.0.1`) - ninguem de fora acessa.
+
+## Uso diario (linha de comando)
 
 ### 1. Relatorio de precos
 
@@ -135,7 +155,11 @@ mercado-livre-pricing/
 │   ├── models.py                # dataclasses (ProductConfig, PriceSuggestion, ...)
 │   ├── pricing_engine.py        # calculo de margem/preco e pontuacao de campeoes
 │   ├── product_finder.py        # busca de produtos campeoes
-│   └── cli.py                   # comandos: price-report, find-champions, apply-prices
+│   ├── services.py              # funcoes compartilhadas (config, cliente, relatorio)
+│   ├── cli.py                   # comandos: price-report, find-champions, apply-prices
+│   ├── webapp.py                # dashboard web local (python -m src.webapp)
+│   ├── templates/                # paginas HTML do dashboard
+│   └── static/style.css
 └── tests/
     └── test_pricing_engine.py
 ```

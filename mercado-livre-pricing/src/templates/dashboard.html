@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Relatorio de Precos{% endblock %}
+{% block content %}
+  <h2>Relatorio de Precos</h2>
+
+  {% if error %}
+    <div class="error-box">{{ error }}</div>
+  {% endif %}
+
+  {% if suggestions is none %}
+    <p class="hint">Configure <code>config/products.json</code> para comecar (veja <code>config/products.example.json</code>).</p>
+  {% elif suggestions|length == 0 %}
+    <p class="hint">Nenhum produto configurado.</p>
+  {% else %}
+    <table>
+      <thead>
+        <tr>
+          <th>SKU</th>
+          <th>Produto</th>
+          <th>Preco atual</th>
+          <th>Piso (margem min.)</th>
+          <th>Alvo (margem desej.)</th>
+          <th>Sugerido</th>
+          <th>Margem sugerida</th>
+          <th>Concorrentes</th>
+          <th>Acao</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in suggestions %}
+          <tr>
+            <td>{{ s.sku }}</td>
+            <td>{{ s.title }}</td>
+            <td>{{ "R$ %.2f"|format(s.current_price) if s.current_price else "-" }}</td>
+            <td>R$ {{ "%.2f"|format(s.min_viable_price) }}</td>
+            <td>R$ {{ "%.2f"|format(s.target_price) }}</td>
+            <td><strong>R$ {{ "%.2f"|format(s.suggested_price) }}</strong></td>
+            <td>{{ "%.1f"|format(s.suggested_margin_pct) }}%</td>
+            <td>
+              {% if s.competitor_count %}
+                {{ s.competitor_count }}
+                (min R$ {{ "%.2f"|format(s.competitor_min) }} /
+                med R$ {{ "%.2f"|format(s.competitor_median) }} /
+                max R$ {{ "%.2f"|format(s.competitor_max) }})
+              {% else %}
+                nenhum
+              {% endif %}
+            </td>
+            <td><span class="badge {{ s.action }}">{{ s.action }}</span></td>
+            <td>
+              {% if s.action in ("reduzir", "aumentar") %}
+                <form method="post" action="{{ url_for('apply_price', sku=s.sku) }}">
+                  <button class="small" type="submit">Aplicar</button>
+                </form>
+              {% endif %}
+            </td>
+          </tr>
+          {% if s.notes %}
+            <tr>
+              <td></td>
+              <td colspan="9">
+                <ul class="notes">
+                  {% for note in s.notes %}<li>{{ note }}</li>{% endfor %}
+                </ul>
+              </td>
+            </tr>
+          {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+    <p class="hint">
+      "Aplicar" so funciona se voce configurou credenciais OAuth (ML_ACCESS_TOKEN) no .env
+      e o produto tem <code>item_id</code> configurado.
+    </p>
+  {% endif %}
+{% endblock %}

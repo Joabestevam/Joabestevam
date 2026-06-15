@@ -29,7 +29,11 @@ In addition to the profile README, the repo also hosts a standalone Python proje
     │   ├── models.py             # Dataclasses: ProductConfig, PriceSuggestion, etc.
     │   ├── pricing_engine.py     # Margin/price math and champion scoring
     │   ├── product_finder.py     # "Produto campeão" discovery logic
-    │   └── cli.py                # CLI: price-report, find-champions, apply-prices
+    │   ├── services.py           # Shared helpers (config loading, ML client, price report)
+    │   ├── cli.py                # CLI: price-report, find-champions, apply-prices
+    │   ├── webapp.py              # Local Flask dashboard (python -m src.webapp)
+    │   ├── templates/             # Dashboard HTML (Jinja2)
+    │   └── static/style.css
     └── tests/
         └── test_pricing_engine.py
 ```
@@ -58,6 +62,10 @@ python -m src.cli price-report --config config/products.json
 python -m src.cli find-champions --top 15
 pytest   # unit tests for pricing_engine
 ```
+
+For a browser-based dashboard (no CLI needed), run `python -m src.webapp` and open
+http://127.0.0.1:5000 — shows the price report table (with an "Aplicar" button per product
+when OAuth is configured) and a champion-product search page.
 
 See `mercado-livre-pricing/README.md` for full setup, OAuth flow, and cron scheduling.
 

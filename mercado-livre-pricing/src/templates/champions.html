@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Produtos Campeoes{% endblock %}
+{% block content %}
+  <h2>Produtos Campeoes</h2>
+  <p class="hint">
+    Pontuacao = vendas / (1 + concorrentes), com bonus para frete gratis.
+    Deixe em branco para usar as tendencias de busca atuais do Mercado Livre.
+  </p>
+
+  <form class="champions-form" method="get" action="{{ url_for('champions') }}">
+    <input type="text" name="queries" value="{{ queries }}" placeholder="ex: tenis, fone bluetooth, capa celular">
+    <input type="hidden" name="search" value="1">
+    <button type="submit">Buscar</button>
+  </form>
+
+  {% if error %}
+    <div class="error-box">{{ error }}</div>
+  {% elif not searched %}
+    <p class="hint">Informe termos (ou deixe vazio) e clique em Buscar.</p>
+  {% elif results|length == 0 %}
+    <p class="hint">Nenhum produto campeao encontrado.</p>
+  {% else %}
+    <table>
+      <thead>
+        <tr>
+          <th>Score</th>
+          <th>Vendas</th>
+          <th>Concorrentes</th>
+          <th>Preco</th>
+          <th>Frete gratis</th>
+          <th>Termo</th>
+          <th>Titulo</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in results %}
+          <tr>
+            <td>{{ "%.2f"|format(c.score) }}</td>
+            <td>{{ c.sold_quantity }}</td>
+            <td>{{ c.competitor_count }}</td>
+            <td>R$ {{ "%.2f"|format(c.price) }}</td>
+            <td>{{ "sim" if c.free_shipping else "nao" }}</td>
+            <td>{{ c.query }}</td>
+            <td>{{ c.title }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+{% endblock %}

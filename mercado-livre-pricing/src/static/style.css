@@ -1,0 +1,134 @@
+* { box-sizing: border-box; font-family: -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
+
+body {
+  margin: 0;
+  background: #f4f5f7;
+  color: #1f2933;
+}
+
+header {
+  background: #fff159;
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+nav a {
+  margin-left: 1.25rem;
+  text-decoration: none;
+  color: #1f2933;
+  font-weight: 600;
+}
+
+nav a.active {
+  border-bottom: 2px solid #1f2933;
+}
+
+main {
+  max-width: 1100px;
+  margin: 1.5rem auto;
+  padding: 0 1.5rem;
+}
+
+.flash {
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+}
+
+.flash.success { background: #d3f3df; color: #166534; }
+.flash.error { background: #fde2e1; color: #991b1b; }
+
+.error-box {
+  background: #fde2e1;
+  color: #991b1b;
+  padding: 1rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+th, td {
+  text-align: left;
+  padding: 0.6rem 0.8rem;
+  border-bottom: 1px solid #e4e7eb;
+  font-size: 0.9rem;
+}
+
+th {
+  background: #f0f1f3;
+  font-weight: 700;
+}
+
+tr:last-child td { border-bottom: none; }
+
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.badge.manter { background: #e2e8f0; color: #334155; }
+.badge.reduzir { background: #fde68a; color: #92400e; }
+.badge.aumentar { background: #bfdbfe; color: #1e3a8a; }
+.badge.alerta_margem { background: #fecaca; color: #991b1b; }
+
+.notes {
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin: 0.25rem 0 0;
+  padding-left: 1.1rem;
+}
+
+form.champions-form {
+  margin-bottom: 1.25rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
+form.champions-form input[type="text"] {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #cbd2d9;
+  border-radius: 6px;
+  font-size: 0.95rem;
+}
+
+button, .btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  background: #1f2933;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+button.small {
+  padding: 0.3rem 0.7rem;
+  font-size: 0.8rem;
+}
+
+.hint {
+  color: #6b7280;
+  font-size: 0.85rem;
+}
