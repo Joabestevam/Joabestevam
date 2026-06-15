@@ -1,0 +1,32 @@
+[
+  {
+    "sku": "TENIS-001",
+    "title": "Tenis Esportivo Masculino Confort",
+    "item_id": "MLB1234567890",
+    "search_query": "tenis esportivo masculino confort",
+    "cost_price": 45.00,
+    "extra_cost": 3.50,
+    "min_margin_pct": 12,
+    "target_margin_pct": 28,
+    "ml_fee_pct": 13,
+    "fixed_fee": 0,
+    "shipping_cost": 12.00,
+    "strategy": "match_median",
+    "competitiveness_step": 0.02
+  },
+  {
+    "sku": "FONE-002",
+    "title": "Fone de Ouvido Bluetooth TWS",
+    "item_id": "MLB9876543210",
+    "search_query": "fone de ouvido bluetooth tws",
+    "cost_price": 18.00,
+    "extra_cost": 1.50,
+    "min_margin_pct": 15,
+    "target_margin_pct": 35,
+    "ml_fee_pct": 14,
+    "fixed_fee": 6.25,
+    "shipping_cost": 0,
+    "strategy": "beat_lowest",
+    "competitiveness_step": 0.03
+  }
+]

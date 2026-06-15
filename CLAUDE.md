@@ -5,19 +5,61 @@ Guidance for AI assistants (Claude Code and similar tools) working in this repos
 ## What this repository is
 
 This is **Joabestevam's GitHub profile repository** (`joabestevam/joabestevam`). A repository
-named exactly the same as the GitHub username is special-cased by GitHub: its `README.md` is
-rendered on the user's profile page (https://github.com/Joabestevam).
+named exactly the same as the GitHub username is special-cased by GitHub: its root `README.md`
+is rendered on the user's profile page (https://github.com/Joabestevam).
 
-There is **no application code, build system, package manager, or test suite** here. The entire
-content of the repo is a single `README.md` file (plus this `CLAUDE.md`).
+In addition to the profile README, the repo also hosts a standalone Python project,
+`mercado-livre-pricing/` (see below), unrelated to the profile page itself.
 
 ## Repository structure
 
 ```
 .
-├── README.md   # Rendered as the profile page on github.com/Joabestevam
-└── CLAUDE.md   # This file
+├── README.md                 # Rendered as the profile page on github.com/Joabestevam
+├── CLAUDE.md                  # This file
+└── mercado-livre-pricing/     # Standalone Python project (pricing + product research)
+    ├── README.md               # Setup and usage instructions for this subproject
+    ├── requirements.txt
+    ├── .env.example
+    ├── config/
+    │   └── products.example.json
+    ├── data/                    # Generated CSV reports (gitignored content aside, kept via .gitkeep)
+    ├── src/
+    │   ├── ml_client.py         # Mercado Livre API client (public endpoints + OAuth)
+    │   ├── models.py             # Dataclasses: ProductConfig, PriceSuggestion, etc.
+    │   ├── pricing_engine.py     # Margin/price math and champion scoring
+    │   ├── product_finder.py     # "Produto campeão" discovery logic
+    │   └── cli.py                # CLI: price-report, find-champions, apply-prices
+    └── tests/
+        └── test_pricing_engine.py
 ```
+
+## mercado-livre-pricing/ subproject
+
+A CLI tool for sellers on Mercado Livre (Brazilian/LatAm marketplace):
+
+- **Price management**: for each configured product, fetches competitor listings via the
+  public Mercado Livre search API, computes a minimum-viable price (based on cost + ML fees +
+  minimum margin) and a target price (desired margin), and suggests a price per a configurable
+  strategy (`match_median`, `beat_lowest`, `premium`). Suggested prices never go below the
+  minimum-viable price.
+- **Champion product finder**: uses Mercado Livre trending searches (or user-supplied
+  keywords) and scores results by `sold_quantity / (1 + competitor_count)` (with a free-shipping
+  bonus) to surface high-demand, low-competition products.
+- **Optional OAuth**: read-only features (price reports, champion search) work without
+  credentials. Updating your own listing prices (`apply-prices --confirm`) requires Mercado
+  Livre developer OAuth credentials (`ML_CLIENT_ID`/`ML_CLIENT_SECRET`/tokens in `.env`).
+
+Run from `mercado-livre-pricing/`:
+```bash
+pip install -r requirements.txt
+cp config/products.example.json config/products.json   # edit with real products
+python -m src.cli price-report --config config/products.json
+python -m src.cli find-champions --top 15
+pytest   # unit tests for pricing_engine
+```
+
+See `mercado-livre-pricing/README.md` for full setup, OAuth flow, and cron scheduling.
 
 ### README.md contents
 
