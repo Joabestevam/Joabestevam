@@ -43,9 +43,9 @@
         <div class="kpi-foot"><div id="kbar-ativos"></div></div>
       </div>
       <div class="kpi k3">
-        <div class="kpi-row"><div class="kpi-ico">👥</div><span class="kpi-tag tag-up">FTE</span></div>
-        <div class="kpi-val" id="kpi-hc">0</div>
-        <div class="kpi-lbl">Redução de Headcount (FTE)</div>
+        <div class="kpi-row"><div class="kpi-ico">💡</div><span class="kpi-tag tag-up">IA</span></div>
+        <div class="kpi-val" id="kpi-hc">0h</div>
+        <div class="kpi-lbl">Horas Economizadas / Mês</div>
         <div class="kpi-foot"><div id="kbar-hc"></div></div>
       </div>
       <div class="kpi k4">
@@ -218,7 +218,6 @@
                 <option value="andamento">Em andamento</option>
                 <option value="integracao">Em integração</option>
                 <option value="dev">Em desenvolvimento</option>
-                <option value="pipe">Em estruturação</option>
               </select>
               <span class="field-hint">💡 Atualizado automaticamente pela execução</span>
             </div>
@@ -280,29 +279,13 @@
         <div class="wizard-panel" id="wpanel-2">
           <div class="wp-section-label">Ganhos Esperados</div>
 
-          <div class="ganho-suggestions" id="ganhoSuggestions">
-            <span class="sug-label">Sugestões:</span>
-            <button type="button" class="sug-btn" onclick="addSuggestion(this)">Redução de chamados</button>
-            <button type="button" class="sug-btn" onclick="addSuggestion(this)">Redução do TMA</button>
-            <button type="button" class="sug-btn" onclick="addSuggestion(this)">Aumento de produtividade</button>
-            <button type="button" class="sug-btn" onclick="addSuggestion(this)">Redução de erros</button>
-            <button type="button" class="sug-btn" onclick="addSuggestion(this)">Padronização de processos</button>
-            <button type="button" class="sug-btn" onclick="addSuggestion(this)">Maior autonomia comercial</button>
-          </div>
-
           <div class="ganhos-editor" id="ganhosEditor"></div>
           <button class="btn-add-ganho" onclick="addGanhoField()">＋ Adicionar ganho</button>
 
           <div class="wp-section-label" style="margin-top:6px">Headcount</div>
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">HC Dedicado Atual</label>
-              <input class="form-input" id="f-hc" type="number" min="0" placeholder="0">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Redução HC (FTE)</label>
-              <input class="form-input" id="f-fte" type="number" min="0" placeholder="0">
-            </div>
+          <div class="form-group" style="max-width:180px">
+            <label class="form-label">HC Dedicado Atual</label>
+            <input class="form-input" id="f-hc" type="number" min="0" placeholder="0">
           </div>
 
           <div class="wp-section-label" style="margin-top:4px">
@@ -1065,9 +1048,15 @@ function calcEstatisticas(p){
   const horasEcon = hasIAData ? parseFloat((horasAtuais - horasComIA).toFixed(1)) : 0;
   const eficienciaPct = hasIAData && horasAtuais > 0 ? Math.round((horasEcon / horasAtuais) * 100) : 0;
   const hcAtual = parseInt(p.hc) || 0;
-  const fteRed = parseInt(p.fte) || 0;
-  const automacaoPct = hcAtual > 0 ? Math.round((fteRed / hcAtual) * 100) : 0;
-  return { volMes, tempoAtual, tempoIA, horasAtuais, horasComIA, horasEcon, eficienciaPct, hasData, hasIAData, hcAtual, fteRed, automacaoPct };
+  return { volMes, tempoAtual, tempoIA, horasAtuais, horasComIA, horasEcon, eficienciaPct, hasData, hasIAData, hcAtual };
+}
+function editTempoIA(id){
+  const p=projects.find(x=>x.id===id);if(!p)return;
+  const v=prompt('Tempo Médio com IA (min):',p.tempoIA||'');
+  if(v===null)return;
+  const num=parseFloat(v);
+  p.tempoIA=num>0?num:null;
+  save();renderStatsModal(p);renderAll();
 }
 
 
@@ -1256,7 +1245,7 @@ function openModal(id=null){
     const p=projects.find(x=>x.id===id);
     set('f-nome',p.nome);set('f-desc',p.desc||'');
     set('f-inicio',p.inicio||'');set('f-entrega',p.entrega||'');
-    set('f-hc',p.hc||'');set('f-fte',p.fte||'');
+    set('f-hc',p.hc||'');
     set('f-sistemas',p.sistemas?.join(', ')||'');set('f-ferramentas',p.ferramentas||'');
     set('f-statintegr',p.statintegr||'');set('f-tipoganha',p.tipoganha||'');
     set('f-ganhofinanceiro',p.ganhofinanceiro||'');set('f-risco',p.risco||'');
@@ -1279,7 +1268,7 @@ function openModal(id=null){
     // Preview
     previewEficiencia();
   }else{
-    ['f-nome','f-desc','f-inicio','f-entrega','f-hc','f-fte','f-sistemas','f-ferramentas','f-statintegr','f-tipoganha','f-ganhofinanceiro','f-risco','f-detalhes','f-vol-mes','f-tempo-atual','f-tempo-ia'].forEach(fid=>{const el=document.getElementById(fid);if(el)el.value='';});
+    ['f-nome','f-desc','f-inicio','f-entrega','f-hc','f-sistemas','f-ferramentas','f-statintegr','f-tipoganha','f-ganhofinanceiro','f-risco','f-detalhes','f-vol-mes','f-tempo-atual','f-tempo-ia'].forEach(fid=>{const el=document.getElementById(fid);if(el)el.value='';});
     document.getElementById('f-tipo').value='IA';
     document.getElementById('f-status').value='andamento';
     document.querySelector('.imp-btn.imp-alto')?.classList.add('selected');
@@ -1312,7 +1301,6 @@ function saveProject(){
       .filter(Boolean),
 
     hc:parseInt(document.getElementById('f-hc').value)||0,
-    fte:parseInt(document.getElementById('f-fte').value)||0,
 
     tipoganha:g('f-tipoganha'),
     ganhofinanceiro:g('f-ganhofinanceiro'),
@@ -1428,11 +1416,12 @@ function buildStIndicadores(p, st){
   </div>`;
 
   const c2 = `
-  <div class="st-ind-card teal">
+  <div class="st-ind-card teal" style="position:relative">
     <div class="st-ind-ico">🤖</div>
-    <div class="st-ind-val teal">${st.hasIAData ? st.horasComIA + 'h' : '—'}</div>
-    <div class="st-ind-lbl">Horas / Mês Com IA</div>
-    <div class="st-ind-sub">${st.hasIAData ? `${st.volMes.toLocaleString('pt-BR')} × ${st.tempoIA} ÷ 60` : 'preencha Tempo com IA'}</div>
+    <div class="st-ind-val teal">${st.tempoIA > 0 ? st.tempoIA + 'min' : '—'}</div>
+    <div class="st-ind-lbl">Tempo com IA</div>
+    <div class="st-ind-sub">${st.hasIAData ? `→ ${st.horasComIA}h/mês` : 'toque ✏️ para adicionar'}</div>
+    <button style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,.08);border:none;border-radius:6px;cursor:pointer;font-size:11px;padding:2px 5px;opacity:.8" onclick="event.stopPropagation();editTempoIA(${p.id})">✏️</button>
   </div>`;
 
   const c3 = `
@@ -1484,8 +1473,14 @@ function buildStTabelaExecutiva(p,st){
             <td class="st-td-icon">🕐</td>
             <td class="st-td-label bold">Horas totais / mês</td>
             <td class="st-td-val big">${st.horasAtuais}h</td>
-            ${ia?`<td class="st-td-val positive big">${st.horasComIA}h</td><td class="st-td-val positive big">−${st.horasEcon}h (${st.eficienciaPct}%)</td>`:''}
+            ${ia?`<td class="st-td-val positive big">${st.horasComIA}h</td><td class="st-td-val positive big">−${st.horasEcon}h</td>`:''}
           </tr>
+          ${ia?`<tr class="st-table-row" style="background:rgba(34,197,94,.07)">
+            <td class="st-td-icon">📈</td>
+            <td class="st-td-label bold" style="color:var(--green)">Ganho de Eficiência</td>
+            <td class="st-td-val neutral">—</td>
+            <td class="st-td-val positive big" style="color:var(--green);font-size:16px" colspan="2">${st.eficienciaPct}% menos tempo</td>
+          </tr>`:''}
         </tbody>
       </table>
     </div>
@@ -1495,18 +1490,14 @@ function buildStTabelaExecutiva(p,st){
 function buildStCalculos(st){
   return `<div class="st-section"><div class="st-sec-header"><span class="st-sec-icon">🧮</span><span class="st-sec-title">Metodologia de Cálculo</span></div>
     <div class="st-calculo-item" style="border-left:3px solid var(--gold)"><div class="st-calculo-title" style="color:var(--gold)">Horas / Mês Sem IA</div><code class="st-calculo-formula">(Volumetria × Tempo Atual) ÷ 60</code><div class="st-calculo-resultado">= (${st.volMes.toLocaleString('pt-BR')} × ${st.tempoAtual}) ÷ 60 = <b>${st.horasAtuais}h</b></div></div>
-    ${st.hasIAData?`<div class="st-calculo-item" style="border-left:3px solid var(--teal)"><div class="st-calculo-title" style="color:var(--teal)">Horas / Mês Com IA</div><code class="st-calculo-formula">(Volumetria × Tempo com IA) ÷ 60</code><div class="st-calculo-resultado">= (${st.volMes.toLocaleString('pt-BR')} × ${st.tempoIA}) ÷ 60 = <b>${st.horasComIA}h</b></div></div>
+    ${st.hasIAData?`<div class="st-calculo-item" style="border-left:3px solid var(--teal)"><div class="st-calculo-title" style="color:var(--teal)">Horas / Mês Com IA</div><code class="st-calculo-formula">(Vol. Projetada × Tempo com IA) ÷ 60</code><div class="st-calculo-resultado">= (${st.volMes.toLocaleString('pt-BR')} × ${st.tempoIA}) ÷ 60 = <b>${st.horasComIA}h</b></div></div>
     <div class="st-calculo-item" style="border-left:3px solid var(--green)"><div class="st-calculo-title" style="color:var(--green)">Economia / Mês</div><code class="st-calculo-formula">Horas Sem IA − Horas Com IA</code><div class="st-calculo-resultado">= ${st.horasAtuais}h − ${st.horasComIA}h = <b>${st.horasEcon}h (${st.eficienciaPct}%)</b></div></div>`:''}
   </div>`;
 }
 function buildStVolumetriaHC(p,st){
-  const hcColor=st.automacaoPct>=50?'var(--green)':st.automacaoPct>0?'var(--gold)':'var(--t3)';
   return `<div class="st-section"><div class="st-sec-header"><span class="st-sec-icon">👥</span><span class="st-sec-title">Headcount</span></div>
-    <div class="st-cmp-grid" style="grid-template-columns:1fr"><div class="st-cmp-block"><div class="st-cmp-title">👥 HC Atual vs. Projetado</div>
-    <div class="st-cmp-row"><div class="st-cmp-side"><div class="st-cmp-val" style="color:var(--purple)">${st.hcAtual}</div><div class="st-cmp-tag st-cmp-tag-atual">ATUAL</div></div>
-    <div class="st-cmp-arrow"><div class="st-cmp-delta" style="color:${hcColor}">−${st.fteRed} FTE</div><div>→</div></div>
-    <div class="st-cmp-side"><div class="st-cmp-val" style="color:var(--green)">${Math.max(st.hcAtual-st.fteRed,0)}</div><div class="st-cmp-tag st-cmp-tag-proj">PROJETADO</div></div></div>
-    ${st.automacaoPct?`<div class="st-bar-track"><div class="st-bar-fill" style="width:${st.automacaoPct}%;background:${hcColor}"></div></div><div class="st-auto-label">${st.automacaoPct}% do trabalho operacional automatizado</div>`:''}
+    <div class="st-cmp-grid" style="grid-template-columns:1fr"><div class="st-cmp-block">
+    <div class="st-cmp-row"><div class="st-cmp-side"><div class="st-cmp-val" style="color:var(--purple)">${st.hcAtual}</div><div class="st-cmp-tag st-cmp-tag-atual">PESSOAS DEDICADAS</div></div></div>
     </div></div></div>`;
 }
 
@@ -1524,8 +1515,9 @@ function openDetail(id){
   const st=calcEstatisticas(p);
   const finBoxes=`<div class="d-fin-box">
     <div class="d-fin-item"><div class="d-fin-val" style="color:var(--blue-m)">${p.hc||'—'}</div><div class="d-fin-lbl">HC Dedicado</div></div>
-    <div class="d-fin-item"><div class="d-fin-val" style="color:var(--red)">${p.fte||'—'}</div><div class="d-fin-lbl">↓ FTE</div></div>
-    ${st.hasData?`<div class="d-fin-item"><div class="d-fin-val" style="color:var(--teal)">${st.horasAtuais}h</div><div class="d-fin-lbl">Horas / Mês 🕐</div></div>`:''}
+    ${st.hasData?`<div class="d-fin-item"><div class="d-fin-val" style="color:var(--gold)">${st.horasAtuais}h</div><div class="d-fin-lbl">Horas Sem IA 🕐</div></div>`:''}
+    ${st.hasIAData?`<div class="d-fin-item"><div class="d-fin-val" style="color:var(--teal)">${st.horasComIA}h</div><div class="d-fin-lbl">Horas Com IA 🤖</div></div>`:''}
+    ${st.hasIAData?`<div class="d-fin-item"><div class="d-fin-val" style="color:var(--green)">−${st.eficienciaPct}%</div><div class="d-fin-lbl">Economia</div></div>`:''}
     ${p.ganhofinanceiro?`<div class="d-fin-item"><div class="d-fin-val">R$ ${sanitize(p.ganhofinanceiro)}</div><div class="d-fin-lbl">Ganho R$</div></div>`:''}
   </div>`;
   const notasSection=p.detalhes?`<div class="detail-section notas-hl full"><div class="detail-sec-title notas-t"><span>📝</span> Notas &amp; Detalhes</div><div class="d-notas">${sanitize(p.detalhes)}</div></div>`:'';
@@ -1554,14 +1546,16 @@ function closeDetail(){document.getElementById('detailOverlay').classList.remove
 ════════════════════════════════════════ */
 function buildHCVolCol(p){
   const st=calcEstatisticas(p);
-  const hcAtual=parseInt(p.hc)||0;const hcProj=parseInt(p.fte)||0;
+  const hcAtual=parseInt(p.hc)||0;
   return `<div class="col c-hcfte hcvol-col" onclick="event.stopPropagation();openStatsModal(${p.id})">
     <div class="col-hd">HC &amp; Tempo <span class="hcvol-chevron" style="margin-left:auto">📊</span></div>
     <div class="fte-wrap">
       <div class="fte-box"><div class="fte-val" style="${!hcAtual?'color:var(--t3)':''}">${hcAtual||'—'}</div><span class="fte-lbl">HC</span></div>
-      <div class="fte-box"><div class="fte-val" style="${!hcProj?'color:var(--t3)':'color:var(--red)'}">${hcProj?'−'+hcProj:'—'}</div><span class="fte-lbl">↓FTE</span></div>
     </div>
-    ${st.hasData?`<div class="hcvol-resumo" style="margin-top:6px"><div class="hcvol-kv"><span class="hcvol-kv-lbl">Horas / Mês 🕐</span><span class="hcvol-kv-val hcvol-green">${st.horasAtuais}h</span></div></div><div class="hcvpro-hint">ver estatísticas 📊</div>`:''}
+    ${st.hasData?`<div class="hcvol-resumo" style="margin-top:6px">
+      <div class="hcvol-kv"><span class="hcvol-kv-lbl">Sem IA 🕐</span><span class="hcvol-kv-val" style="color:var(--gold)">${st.horasAtuais}h</span></div>
+      ${st.hasIAData?`<div class="hcvol-kv"><span class="hcvol-kv-lbl">Com IA 🤖</span><span class="hcvol-kv-val hcvol-green">${st.horasComIA}h (−${st.eficienciaPct}%)</span></div>`:''}
+    </div><div class="hcvpro-hint">ver estatísticas 📊</div>`:''}
   </div>`;
 }
 function buildNotasRespCol(p){
@@ -1666,16 +1660,16 @@ function renderAll(){
 function updateKPIs(){
   const total=projects.length;
   const ativos=projects.filter(p=>['andamento','integracao','dev'].includes(p.status)).length;
-  const totalFTE=projects.reduce((acc,p)=>acc+(parseInt(p.fte)||0),0);
+  const totalEcon=projects.reduce((acc,p)=>{const st=calcEstatisticas(p);return acc+(st.hasIAData?st.horasEcon:0);},0);
   const pipe=projects.filter(p=>p.status==='pipe').length;
   document.getElementById('kpi-total').textContent=total;
   document.getElementById('kpi-ativos').textContent=ativos;
-  document.getElementById('kpi-hc').textContent=totalFTE;
+  document.getElementById('kpi-hc').textContent=totalEcon>0?totalEcon.toFixed(0)+'h':'0h';
   document.getElementById('kpi-pipe').textContent=pipe;
   const pct=v=>total?Math.round(v/total*100)+'%':'0%';
   document.getElementById('kbar-total').style.width='100%';
   document.getElementById('kbar-ativos').style.width=pct(ativos);
-  document.getElementById('kbar-hc').style.width=totalFTE>0?'100%':'0%';
+  document.getElementById('kbar-hc').style.width=totalEcon>0?'100%':'0%';
   document.getElementById('kbar-pipe').style.width=pct(pipe);
 }
 function setFilter(btn){document.querySelectorAll('.fbtn[data-f]').forEach(b=>b.classList.remove('on'));btn.classList.add('on');curFilter=btn.dataset.f;curImpact=null;document.querySelectorAll('.fbtn[data-i]').forEach(b=>b.classList.remove('on'));renderAll();}
@@ -1700,7 +1694,7 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Enter'&&document.getElementById('modalOverlay').classList.contains('open')){if(wizardStep<TOTAL_STEPS)wizardNext();}
 });
 document.getElementById('detailOverlay').addEventListener('click',e=>{if(e.target===document.getElementById('detailOverlay'))closeDetail();});
-document.getElementById('modalOverlay').addEventListener('click',e=>{if(e.target===document.getElementById('modalOverlay'))closeModal();});
+/* modal only closes via button — removed overlay click handler */
 document.getElementById('statsOverlay').addEventListener('click',e=>{if(e.target===document.getElementById('statsOverlay'))closeStatsModal();});
 const dz=document.getElementById('dragZone');
 dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('active');});
