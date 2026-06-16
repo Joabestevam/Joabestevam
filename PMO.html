@@ -290,19 +290,6 @@
             <button type="button" class="sug-btn" onclick="addSuggestion(this)">Maior autonomia comercial</button>
           </div>
 
-              <div class="form-group">
-  <label class="form-label">
-    Volumetria Projetada (manual)
-  </label>
-  <input 
-    class="form-input" 
-    id="f-vol-proj-manual" 
-    type="number"
-    min="0"
-    placeholder="Opcional - sobrescreve cálculo automático"
-  >
-</div>
-
           <div class="ganhos-editor" id="ganhosEditor"></div>
           <button class="btn-add-ganho" onclick="addGanhoField()">＋ Adicionar ganho</button>
 
@@ -1052,63 +1039,13 @@ function impactoBadge(i){if(i==='Alto')return '<span class="imp-alto">⚡ Alto</
 function calcEstatisticas(p){
   const volMes = parseFloat(p.volMes) || 0;
   const tempoAtual = parseFloat(p.tempoAtual) || 0;
-  const tempoIA = parseFloat(p.tempoIA) || 0;
-
-  const hasData = volMes > 0 && tempoAtual > 0 && tempoIA > 0;
-
-  const fatorX = hasData 
-    ? parseFloat((tempoAtual / tempoIA).toFixed(2)) 
-    : 0;
-
-  const horasAtuais = (volMes > 0 && tempoAtual > 0)
-    ? parseFloat(((volMes * tempoAtual) / 60).toFixed(1))
-    : 0;
-
-  const volProjetadaAuto = hasData 
-    ? Math.round(volMes * fatorX) 
-    : 0;
-
-  const volProjetada = (p.volProjManual && p.volProjManual > 0)
-    ? p.volProjManual
-    : volProjetadaAuto;
-
-  const volProjetadaIsManual = p.volProjManual && p.volProjManual > 0;
-
-  const horasComIA = hasData 
-    ? parseFloat(((volMes * tempoIA) / 60).toFixed(1)) 
-    : 0;
-
-  const horasEcon = parseFloat((horasAtuais - horasComIA).toFixed(1));
-
-  const eficiencia = horasAtuais > 0 
-    ? Math.round(((horasAtuais - horasComIA) / horasAtuais) * 100)
-    : 0;
-
+  const hasData = volMes > 0 && tempoAtual > 0;
+  const horasAtuais = hasData ? parseFloat(((volMes * tempoAtual) / 60).toFixed(1)) : 0;
   const hcAtual = parseInt(p.hc) || 0;
   const fteRed = parseInt(p.fte) || 0;
-
-  const automacaoPct = hcAtual > 0 
-    ? Math.round((fteRed / hcAtual) * 100) 
-    : 0;
-
-  return {
-    volMes,
-    tempoAtual,
-    tempoIA,
-    fatorX,
-    horasAtuais,
-    volProjetada,
-    volProjetadaIsManual,
-    horasComIA,
-    horasEcon,
-    eficiencia,
-    hasData,
-    hcAtual,
-    fteRed,
-    automacaoPct
-  };
-
-} 
+  const automacaoPct = hcAtual > 0 ? Math.round((fteRed / hcAtual) * 100) : 0;
+  return { volMes, tempoAtual, horasAtuais, hasData, hcAtual, fteRed, automacaoPct };
+}
 
 
 
@@ -1280,7 +1217,6 @@ function openModal(id=null){
 
   if(id){
     const p=projects.find(x=>x.id===id);
-    set('f-vol-proj-manual', p.volProjManual || '');
     set('f-nome',p.nome);set('f-desc',p.desc||'');
     set('f-inicio',p.inicio||'');set('f-entrega',p.entrega||'');
     set('f-hc',p.hc||'');set('f-fte',p.fte||'');
@@ -1306,7 +1242,7 @@ function openModal(id=null){
     // Preview
     previewEficiencia();
   }else{
-    ['f-nome','f-desc','f-inicio','f-entrega','f-hc','f-fte','f-sistemas','f-ferramentas','f-statintegr','f-tipoganha','f-ganhofinanceiro','f-risco','f-detalhes','f-vol-mes','f-tempo-atual','f-vol-proj-manual'].forEach(fid=>{const el=document.getElementById(fid);if(el)el.value='';});
+    ['f-nome','f-desc','f-inicio','f-entrega','f-hc','f-fte','f-sistemas','f-ferramentas','f-statintegr','f-tipoganha','f-ganhofinanceiro','f-risco','f-detalhes','f-vol-mes','f-tempo-atual'].forEach(fid=>{const el=document.getElementById(fid);if(el)el.value='';});
     document.getElementById('f-tipo').value='IA';
     document.getElementById('f-status').value='andamento';
     document.querySelector('.imp-btn.imp-alto')?.classList.add('selected');
@@ -1324,8 +1260,7 @@ function saveProject(){
   const g=id=>document.getElementById(id)?.value.trim()??'';
   const exec={};
   document.querySelectorAll('.exec-stage').forEach(s=>{exec[s.dataset.etapa]=s.classList.contains('done');});
-  const volProjPreview = document.getElementById('prev-vol-proj');
-const data = {
+  const data = {
     nome:g('f-nome'),
     tipo:document.getElementById('f-tipo').value,
     desc:g('f-desc'),
@@ -1358,9 +1293,7 @@ const data = {
 
     volMes:parseFloat(document.getElementById('f-vol-mes').value)||null,
     tempoAtual:parseFloat(document.getElementById('f-tempo-atual').value)||null,
-    tempoIA:null,
-
-    volProjManual: parseFloat(volProjPreview?.value) || null
+    tempoIA:null
   };
 
   
@@ -1435,7 +1368,7 @@ function closeStatsModal(){document.getElementById('statsOverlay').classList.rem
 function renderStatsModal(p){
   if(!p)p=projects.find(x=>x.id===statsState.projectId);if(!p)return;
   const st=calcEstatisticas(p);const pct=progPct(p.exec);
-  const alertaHTML=!st.hasData?`<div class="st-alerta"><span class="st-alerta-ico">⚠️</span><span>Preencha <b>Volumetria/mês</b>, <b>Tempo Atual</b> e <b>Tempo com IA</b> para gerar indicadores.</span><button class="st-alerta-btn" onclick="closeStatsModal();openModal(${p.id})">✏️ Preencher</button></div>`:'';
+  const alertaHTML=!st.hasData?`<div class="st-alerta"><span class="st-alerta-ico">⚠️</span><span>Preencha <b>Volumetria/mês</b> e <b>Tempo Médio Atual</b> para gerar indicadores.</span><button class="st-alerta-btn" onclick="closeStatsModal();openModal(${p.id})">✏️ Preencher</button></div>`:'';
   document.getElementById('statsModal').innerHTML=`
     <div class="st-header"><button class="st-back" onclick="closeStatsModal()">←</button><div class="st-header-center"><span class="st-title">ESTATÍSTICAS</span><span class="st-subtitle">Eficiência Operacional</span></div><div style="width:32px"></div></div>
     <div class="st-project-row"><div style="display:flex;flex-direction:column;gap:3px;flex:1;overflow:hidden"><span class="st-project-name">${sanitize(p.nome)}</span><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">${statusBadge(p.status)}${impactoBadge(p.impacto)}</div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0"><span class="st-type-tag">${sanitize(p.tipo)}</span><span style="font-size:10px;font-weight:700;color:${progColor(pct)}">${pct}% concluído</span></div></div>
@@ -1449,85 +1382,28 @@ function renderStatsModal(p){
     <div class="st-footer"><button class="st-footer-btn" onclick="closeStatsModal()">🏠<br>Fechar</button><button class="st-footer-btn active">📊<br>Estatísticas</button><button class="st-footer-btn" onclick="closeStatsModal();openModal(${p.id})">✏️<br>Editar</button></div>`;
 }
 function buildStIndicadores(p, st){
-  const manual = `<span style="font-size:8px;font-weight:700;background:var(--teal-s);color:var(--teal);"></span>`;
-  const auto = `<span></span>`;
-
   const c1 = `
   <div class="st-ind-card blue">
-    ${manual}
     <div class="st-ind-ico">📦</div>
-    <div class="st-ind-val blue">
-      ${st.volMes > 0 ? st.volMes.toLocaleString('pt-BR') : '—'}
-    </div>
+    <div class="st-ind-val blue">${st.volMes > 0 ? st.volMes.toLocaleString('pt-BR') : '—'}</div>
     <div class="st-ind-lbl">Volume Mensal</div>
     <div class="st-ind-sub">atividades / mês</div>
   </div>`;
 
   const c2 = `
   <div class="st-ind-card gold">
-    ${manual}
     <div class="st-ind-ico">⏱️</div>
-    <div class="st-ind-val gold">
-      ${st.tempoAtual > 0 ? st.tempoAtual + 'min' : '—'}
-    </div>
+    <div class="st-ind-val gold">${st.tempoAtual > 0 ? st.tempoAtual + 'min' : '—'}</div>
     <div class="st-ind-lbl">Tempo Médio Atual</div>
     <div class="st-ind-sub">por atividade</div>
   </div>`;
 
   const c3 = `
   <div class="st-ind-card teal">
-    ${auto}
     <div class="st-ind-ico">🕐</div>
-    <div class="st-ind-val teal">
-      ${st.horasAtuais > 0 ? st.horasAtuais + 'h' : '—'}
-    </div>
+    <div class="st-ind-val teal">${st.horasAtuais > 0 ? st.horasAtuais + 'h' : '—'}</div>
     <div class="st-ind-lbl">Tempo Total / Mês</div>
-    <div class="st-ind-sub">
-      ${st.horasAtuais > 0
-        ? `${st.volMes.toLocaleString('pt-BR')} × ${st.tempoAtual}÷60`
-        : 'preencha Volume e Tempo Atual'}
-    </div>
-  </div>`;
-
-  const c4 = `
-  <div class="st-ind-card blue">
-    <div class="st-ind-ico">🔭</div>
-    <div class="st-ind-val blue">
-      ${
-        st.volProjetada > 0 
-          ? st.volProjetada.toLocaleString('pt-BR') + (st.volProjetadaIsManual ? '' : '') 
-          : '—'
-      }
-    </div>
-    <div class="st-ind-lbl">Volumetria Projetada</div>
-  </div>`;
-
-  const c5 = `
-  <div class="st-ind-card purple">
-    ${manual}
-    <div class="st-ind-ico">🤖</div>
-    <div class="st-ind-val purple">
-      ${st.tempoIA > 0 ? st.tempoIA + 'min' : '—'}
-    </div>
-    <div class="st-ind-lbl">Tempo Médio c/ IA</div>
-    <div class="st-ind-sub">
-      ${st.fatorX > 0 ? `${st.fatorX}× mais rápido` : ''}
-    </div>
-  </div>`;
-
-  const c6 = `
-  <div class="st-ind-card green">
-    ${auto}
-    <div class="st-ind-ico">⚡</div>
-    <div class="st-ind-val green">
-      ${st.horasComIA > 0 ? st.horasComIA + 'h' : '—'}
-    </div>
-    <div class="st-ind-lbl">Tempo Total c/ IA</div>
-    <div class="st-ind-sub">
-      ${st.hasData 
-        ? `${st.volMes.toLocaleString('pt-BR')} × ${st.tempoIA}÷60` 
-        : ''}
-    </div>
+    <div class="st-ind-sub">${st.hasData ? `${st.volMes.toLocaleString('pt-BR')} × ${st.tempoAtual} ÷ 60` : 'preencha Volume e Tempo Atual'}</div>
   </div>`;
 
   return `
@@ -1535,14 +1411,10 @@ function buildStIndicadores(p, st){
     <div class="st-sec-header">
       <span class="st-sec-icon">🎯</span>
       <span class="st-sec-title">Indicadores</span>
-      <span class="st-sec-sub">✍️ manual | 🔢 auto</span>
-      <button class="st-edit-btn" onclick="closeStatsModal();openModal(${p.id})">
-        ✏️ Editar
-      </button>
+      <button class="st-edit-btn" onclick="closeStatsModal();openModal(${p.id})">✏️ Editar</button>
     </div>
-
-    <div class="st-ind-grid">
-      ${c1}${c2}${c3}${c4}${c5}${c6}
+    <div class="st-ind-grid" style="grid-template-columns:repeat(3,1fr)">
+      ${c1}${c2}${c3}
     </div>
   </div>`;
 }
@@ -1554,55 +1426,25 @@ function buildStTabelaExecutiva(p,st){
       <span class="st-sec-icon">📋</span>
       <span class="st-sec-title">Visão Executiva</span>
     </div>
-
     <div class="st-table-wrap">
       <table class="st-table">
-        <thead>
-          <tr>
-            <th></th>
-            <th>Indicador</th>
-            <th>Atual</th>
-            <th>Projetado</th>
-          </tr>
-        </thead>
-
+        <thead><tr><th></th><th>Indicador</th><th style="text-align:right">Valor Atual</th></tr></thead>
         <tbody>
-
           <tr class="st-table-row">
             <td class="st-td-icon">📦</td>
             <td class="st-td-label">Volume / mês</td>
             <td class="st-td-val neutral">${st.volMes.toLocaleString('pt-BR')}</td>
-            <td class="st-td-val neutral">${st.volMes.toLocaleString('pt-BR')}</td>
           </tr>
-
           <tr class="st-table-row">
             <td class="st-td-icon">⏱️</td>
-            <td class="st-td-label">Tempo por atividade</td>
+            <td class="st-td-label">Tempo médio atual</td>
             <td class="st-td-val neutral">${st.tempoAtual}min</td>
-            <td class="st-td-val positive">${st.tempoIA}min</td>
           </tr>
-
           <tr class="st-table-row highlight">
-            <td class="st-td-icon">⚡</td>
-            <td class="st-td-label bold">Tempo Total</td>
-            <td class="st-td-val neutral">${st.horasAtuais}h</td>
-            <td class="st-td-val positive">
-              ${st.horasComIA}h
-              <span style="font-size:10px">
-                (-${st.horasEcon}h)
-              </span>
-            </td>
+            <td class="st-td-icon">🕐</td>
+            <td class="st-td-label bold">Horas totais / mês</td>
+            <td class="st-td-val positive big">${st.horasAtuais}h</td>
           </tr>
-
-          <tr class="st-table-row">
-            <td class="st-td-icon">🔭</td>
-            <td class="st-td-label">Volumetria Projetada</td>
-            <td class="st-td-val muted">—</td>
-            <td class="st-td-val positive">
-              ${st.volProjetada.toLocaleString('pt-BR')}
-            </td>
-          </tr>
-
         </tbody>
       </table>
     </div>
@@ -1610,11 +1452,9 @@ function buildStTabelaExecutiva(p,st){
 }
 
 function buildStCalculos(st){
-  return `<div class="st-section"><div class="st-sec-header"><span class="st-sec-icon">🧮</span><span class="st-sec-title">Metodologia de Cálculo</span></div><div style="display:flex;flex-direction:column;gap:10px">
-    <div class="st-calculo-item" style="border-left:3px solid var(--teal)"><div class="st-calculo-title" style="color:var(--teal)">① Tempo Total / Mês</div><code class="st-calculo-formula">(Volumetria × Tempo Atual) ÷ 60</code><div class="st-calculo-resultado">= (${st.volMes.toLocaleString('pt-BR')} × ${st.tempoAtual}) ÷ 60 = <b>${st.horasAtuais}h</b></div></div>
-    <div class="st-calculo-item" style="border-left:3px solid var(--blue-m)"><div class="st-calculo-title" style="color:var(--blue-m)">② Volumetria Projetada</div><code class="st-calculo-formula">Volumetria × (Tempo Atual ÷ Tempo IA)</code><div class="st-calculo-resultado">= ${st.volMes.toLocaleString('pt-BR')} × ${st.fatorX}× = <b>${st.volProjetada.toLocaleString('pt-BR')}</b></div></div>
-    <div class="st-calculo-item" style="border-left:3px solid var(--green);background:var(--green-s)"><div class="st-calculo-title" style="color:var(--green)">③ Tempo Total c/ IA</div><code class="st-calculo-formula" style="background:var(--s1)">(Volumetria × Tempo IA) ÷ 60</code><div class="st-calculo-resultado">= (${st.volMes.toLocaleString('pt-BR')} × ${st.tempoIA}) ÷ 60 = <b style="color:var(--green)">${st.horasComIA}h</b> (economia de <b>${st.horasEcon}h</b>)</div></div>
-  </div></div>`;
+  return `<div class="st-section"><div class="st-sec-header"><span class="st-sec-icon">🧮</span><span class="st-sec-title">Metodologia de Cálculo</span></div>
+    <div class="st-calculo-item" style="border-left:3px solid var(--teal)"><div class="st-calculo-title" style="color:var(--teal)">Tempo Total / Mês</div><code class="st-calculo-formula">(Volumetria × Tempo Atual) ÷ 60</code><div class="st-calculo-resultado">= (${st.volMes.toLocaleString('pt-BR')} × ${st.tempoAtual}) ÷ 60 = <b>${st.horasAtuais}h</b></div></div>
+  </div>`;
 }
 function buildStVolumetriaHC(p,st){
   const hcColor=st.automacaoPct>=50?'var(--green)':st.automacaoPct>0?'var(--gold)':'var(--t3)';
@@ -1642,7 +1482,7 @@ function openDetail(id){
   const finBoxes=`<div class="d-fin-box">
     <div class="d-fin-item"><div class="d-fin-val" style="color:var(--blue-m)">${p.hc||'—'}</div><div class="d-fin-lbl">HC Dedicado</div></div>
     <div class="d-fin-item"><div class="d-fin-val" style="color:var(--red)">${p.fte||'—'}</div><div class="d-fin-lbl">↓ FTE</div></div>
-    ${st.hasData?`<div class="d-fin-item"><div class="d-fin-val" style="font-size:14px">${st.volProjetada.toLocaleString('pt-BR')}</div><div class="d-fin-lbl">Vol. Projetada 🔢</div></div>`:''}
+    ${st.hasData?`<div class="d-fin-item"><div class="d-fin-val" style="color:var(--teal)">${st.horasAtuais}h</div><div class="d-fin-lbl">Horas / Mês 🕐</div></div>`:''}
     ${p.ganhofinanceiro?`<div class="d-fin-item"><div class="d-fin-val">R$ ${sanitize(p.ganhofinanceiro)}</div><div class="d-fin-lbl">Ganho R$</div></div>`:''}
   </div>`;
   const notasSection=p.detalhes?`<div class="detail-section notas-hl full"><div class="detail-sec-title notas-t"><span>📝</span> Notas &amp; Detalhes</div><div class="d-notas">${sanitize(p.detalhes)}</div></div>`:'';
@@ -1672,17 +1512,13 @@ function closeDetail(){document.getElementById('detailOverlay').classList.remove
 function buildHCVolCol(p){
   const st=calcEstatisticas(p);
   const hcAtual=parseInt(p.hc)||0;const hcProj=parseInt(p.fte)||0;
-  const volPStr=st.hasData?st.volProjetada.toLocaleString('pt-BR'):'—';
   return `<div class="col c-hcfte hcvol-col" onclick="event.stopPropagation();openStatsModal(${p.id})">
-    <div class="col-hd">HC &amp; Vol. <span class="hcvol-chevron" style="margin-left:auto">📊</span></div>
+    <div class="col-hd">HC &amp; Tempo <span class="hcvol-chevron" style="margin-left:auto">📊</span></div>
     <div class="fte-wrap">
       <div class="fte-box"><div class="fte-val" style="${!hcAtual?'color:var(--t3)':''}">${hcAtual||'—'}</div><span class="fte-lbl">HC</span></div>
       <div class="fte-box"><div class="fte-val" style="${!hcProj?'color:var(--t3)':'color:var(--red)'}">${hcProj?'−'+hcProj:'—'}</div><span class="fte-lbl">↓FTE</span></div>
     </div>
-    <div class="hcvol-resumo" style="margin-top:6px">
-      <div class="hcvol-kv"><span class="hcvol-kv-lbl">Vol. Proj. 🔢</span><span class="hcvol-kv-val ${st.hasData?'hcvol-green':''}">${volPStr}</span></div>
-    </div>
-    ${st.hasData?'<div class="hcvpro-hint">ver estatísticas 📊</div>':''}
+    ${st.hasData?`<div class="hcvol-resumo" style="margin-top:6px"><div class="hcvol-kv"><span class="hcvol-kv-lbl">Horas / Mês 🕐</span><span class="hcvol-kv-val hcvol-green">${st.horasAtuais}h</span></div></div><div class="hcvpro-hint">ver estatísticas 📊</div>`:''}
   </div>`;
 }
 function buildNotasRespCol(p){
