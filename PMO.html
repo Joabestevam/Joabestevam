@@ -307,7 +307,7 @@
 
           <div class="wp-section-label" style="margin-top:4px">
             ⏱️ Eficiência Operacional
-            <span class="wp-section-badge">3 entradas → 3 calculados automaticamente</span>
+            <span class="wp-section-badge">Volume + Tempo Atual → Horas/Mês · Adicione Tempo com IA para ver economia</span>
           </div>
 
           <div class="efic-inputs-grid">
@@ -319,6 +319,10 @@
               <label class="form-label">Tempo Médio Atual <span class="form-label-hint">(min)</span> <span class="manual-badge">✍️</span></label>
               <input class="form-input" id="f-tempo-atual" type="number" min="0" placeholder="Ex: 15" oninput="previewEficiencia()">
             </div>
+            <div class="form-group">
+              <label class="form-label">Tempo Médio com IA <span class="form-label-hint">(min)</span> <span class="manual-badge optional-badge">✦ opcional</span></label>
+              <input class="form-input" id="f-tempo-ia" type="number" min="0" placeholder="Ex: 3" oninput="previewEficiencia()">
+            </div>
           </div>
 
           <!-- Alerta de validação -->
@@ -328,11 +332,25 @@
           <div class="efic-preview" id="eficPreview" style="display:none">
             <div class="efic-prev-header">🔢 Calculado automaticamente</div>
             <div class="efic-prev-row" style="grid-template-columns:1fr">
-              <div class="efic-prev-item teal" style="border-right:none">
+              <div class="efic-prev-item gold" style="border-right:none">
                 <div class="efic-prev-ico">🕐</div>
                 <div class="efic-prev-val" id="prev-total-gasto">—</div>
-                <div class="efic-prev-lbl">Tempo Total / Mês</div>
+                <div class="efic-prev-lbl">Horas / Mês <b>Sem IA</b></div>
                 <div class="efic-prev-formula" id="prev-f1"></div>
+              </div>
+            </div>
+            <div class="efic-prev-row" id="prev-row-ia" style="display:none">
+              <div class="efic-prev-item teal">
+                <div class="efic-prev-ico">🤖</div>
+                <div class="efic-prev-val" id="prev-horas-ia">—</div>
+                <div class="efic-prev-lbl">Horas / Mês <b>Com IA</b></div>
+                <div class="efic-prev-formula" id="prev-f2"></div>
+              </div>
+              <div class="efic-prev-item blue" style="border-right:none">
+                <div class="efic-prev-ico">💰</div>
+                <div class="efic-prev-val" id="prev-economia">—</div>
+                <div class="efic-prev-lbl">Economia / Mês</div>
+                <div class="efic-prev-formula" id="prev-f3"></div>
               </div>
             </div>
           </div>
@@ -1039,12 +1057,17 @@ function impactoBadge(i){if(i==='Alto')return '<span class="imp-alto">⚡ Alto</
 function calcEstatisticas(p){
   const volMes = parseFloat(p.volMes) || 0;
   const tempoAtual = parseFloat(p.tempoAtual) || 0;
+  const tempoIA = parseFloat(p.tempoIA) || 0;
   const hasData = volMes > 0 && tempoAtual > 0;
+  const hasIAData = hasData && tempoIA > 0;
   const horasAtuais = hasData ? parseFloat(((volMes * tempoAtual) / 60).toFixed(1)) : 0;
+  const horasComIA = hasIAData ? parseFloat(((volMes * tempoIA) / 60).toFixed(1)) : 0;
+  const horasEcon = hasIAData ? parseFloat((horasAtuais - horasComIA).toFixed(1)) : 0;
+  const eficienciaPct = hasIAData && horasAtuais > 0 ? Math.round((horasEcon / horasAtuais) * 100) : 0;
   const hcAtual = parseInt(p.hc) || 0;
   const fteRed = parseInt(p.fte) || 0;
   const automacaoPct = hcAtual > 0 ? Math.round((fteRed / hcAtual) * 100) : 0;
-  return { volMes, tempoAtual, horasAtuais, hasData, hcAtual, fteRed, automacaoPct };
+  return { volMes, tempoAtual, tempoIA, horasAtuais, horasComIA, horasEcon, eficienciaPct, hasData, hasIAData, hcAtual, fteRed, automacaoPct };
 }
 
 
@@ -1178,15 +1201,29 @@ function toggleOptional(){
 function previewEficiencia(){
   const volMes = parseFloat(document.getElementById('f-vol-mes')?.value) || 0;
   const tempoAtual = parseFloat(document.getElementById('f-tempo-atual')?.value) || 0;
+  const tempoIA = parseFloat(document.getElementById('f-tempo-ia')?.value) || 0;
   const preview = document.getElementById('eficPreview');
-  const alert = document.getElementById('eficAlert');
+  const alertEl = document.getElementById('eficAlert');
   if (!preview) return;
-  alert.style.display = 'none';
+  alertEl.style.display = 'none';
   if (volMes > 0 && tempoAtual > 0) {
     const horasAtuais = ((volMes * tempoAtual) / 60).toFixed(1);
     document.getElementById('prev-total-gasto').textContent = horasAtuais + 'h';
     document.getElementById('prev-f1').textContent = `${volMes.toLocaleString('pt-BR')} × ${tempoAtual} ÷ 60`;
     preview.style.display = 'block';
+    const rowIA = document.getElementById('prev-row-ia');
+    if (tempoIA > 0) {
+      const horasComIA = ((volMes * tempoIA) / 60).toFixed(1);
+      const economia = (parseFloat(horasAtuais) - parseFloat(horasComIA)).toFixed(1);
+      const pct = Math.round(((parseFloat(horasAtuais) - parseFloat(horasComIA)) / parseFloat(horasAtuais)) * 100);
+      document.getElementById('prev-horas-ia').textContent = horasComIA + 'h';
+      document.getElementById('prev-f2').textContent = `${volMes.toLocaleString('pt-BR')} × ${tempoIA} ÷ 60`;
+      document.getElementById('prev-economia').textContent = economia + 'h';
+      document.getElementById('prev-f3').textContent = `${pct}% menos tempo`;
+      rowIA.style.display = '';
+    } else {
+      rowIA.style.display = 'none';
+    }
   } else {
     preview.style.display = 'none';
   }
@@ -1224,7 +1261,7 @@ function openModal(id=null){
     set('f-statintegr',p.statintegr||'');set('f-tipoganha',p.tipoganha||'');
     set('f-ganhofinanceiro',p.ganhofinanceiro||'');set('f-risco',p.risco||'');
     set('f-detalhes',p.detalhes||'');
-    set('f-vol-mes',p.volMes||'');set('f-tempo-atual',p.tempoAtual||'');
+    set('f-vol-mes',p.volMes||'');set('f-tempo-atual',p.tempoAtual||'');set('f-tempo-ia',p.tempoIA||'');
     document.getElementById('f-tipo').value=p.tipo||'IA';
     document.getElementById('f-status').value=p.status||'andamento';
     // Impact
@@ -1242,7 +1279,7 @@ function openModal(id=null){
     // Preview
     previewEficiencia();
   }else{
-    ['f-nome','f-desc','f-inicio','f-entrega','f-hc','f-fte','f-sistemas','f-ferramentas','f-statintegr','f-tipoganha','f-ganhofinanceiro','f-risco','f-detalhes','f-vol-mes','f-tempo-atual'].forEach(fid=>{const el=document.getElementById(fid);if(el)el.value='';});
+    ['f-nome','f-desc','f-inicio','f-entrega','f-hc','f-fte','f-sistemas','f-ferramentas','f-statintegr','f-tipoganha','f-ganhofinanceiro','f-risco','f-detalhes','f-vol-mes','f-tempo-atual','f-tempo-ia'].forEach(fid=>{const el=document.getElementById(fid);if(el)el.value='';});
     document.getElementById('f-tipo').value='IA';
     document.getElementById('f-status').value='andamento';
     document.querySelector('.imp-btn.imp-alto')?.classList.add('selected');
@@ -1293,7 +1330,7 @@ function saveProject(){
 
     volMes:parseFloat(document.getElementById('f-vol-mes').value)||null,
     tempoAtual:parseFloat(document.getElementById('f-tempo-atual').value)||null,
-    tempoIA:null
+    tempoIA:parseFloat(document.getElementById('f-tempo-ia').value)||null
   };
 
   
@@ -1383,34 +1420,34 @@ function renderStatsModal(p){
 }
 function buildStIndicadores(p, st){
   const c1 = `
-  <div class="st-ind-card blue">
-    <div class="st-ind-ico">📦</div>
-    <div class="st-ind-val blue">${st.volMes > 0 ? st.volMes.toLocaleString('pt-BR') : '—'}</div>
-    <div class="st-ind-lbl">Volume Mensal</div>
-    <div class="st-ind-sub">atividades / mês</div>
+  <div class="st-ind-card gold">
+    <div class="st-ind-ico">🕐</div>
+    <div class="st-ind-val gold">${st.horasAtuais > 0 ? st.horasAtuais + 'h' : '—'}</div>
+    <div class="st-ind-lbl">Horas / Mês Sem IA</div>
+    <div class="st-ind-sub">${st.hasData ? `${st.volMes.toLocaleString('pt-BR')} × ${st.tempoAtual} ÷ 60` : 'preencha Volume e Tempo Atual'}</div>
   </div>`;
 
   const c2 = `
-  <div class="st-ind-card gold">
-    <div class="st-ind-ico">⏱️</div>
-    <div class="st-ind-val gold">${st.tempoAtual > 0 ? st.tempoAtual + 'min' : '—'}</div>
-    <div class="st-ind-lbl">Tempo Médio Atual</div>
-    <div class="st-ind-sub">por atividade</div>
+  <div class="st-ind-card teal">
+    <div class="st-ind-ico">🤖</div>
+    <div class="st-ind-val teal">${st.hasIAData ? st.horasComIA + 'h' : '—'}</div>
+    <div class="st-ind-lbl">Horas / Mês Com IA</div>
+    <div class="st-ind-sub">${st.hasIAData ? `${st.volMes.toLocaleString('pt-BR')} × ${st.tempoIA} ÷ 60` : 'preencha Tempo com IA'}</div>
   </div>`;
 
   const c3 = `
-  <div class="st-ind-card teal">
-    <div class="st-ind-ico">🕐</div>
-    <div class="st-ind-val teal">${st.horasAtuais > 0 ? st.horasAtuais + 'h' : '—'}</div>
-    <div class="st-ind-lbl">Tempo Total / Mês</div>
-    <div class="st-ind-sub">${st.hasData ? `${st.volMes.toLocaleString('pt-BR')} × ${st.tempoAtual} ÷ 60` : 'preencha Volume e Tempo Atual'}</div>
+  <div class="st-ind-card blue">
+    <div class="st-ind-ico">💰</div>
+    <div class="st-ind-val blue">${st.hasIAData ? st.horasEcon + 'h' : '—'}</div>
+    <div class="st-ind-lbl">Economia / Mês</div>
+    <div class="st-ind-sub">${st.hasIAData ? `${st.eficienciaPct}% menos tempo` : 'preencha Tempo com IA'}</div>
   </div>`;
 
   return `
   <div class="st-section">
     <div class="st-sec-header">
       <span class="st-sec-icon">🎯</span>
-      <span class="st-sec-title">Indicadores</span>
+      <span class="st-sec-title">Antes vs. Depois com IA</span>
       <button class="st-edit-btn" onclick="closeStatsModal();openModal(${p.id})">✏️ Editar</button>
     </div>
     <div class="st-ind-grid" style="grid-template-columns:repeat(3,1fr)">
@@ -1420,6 +1457,7 @@ function buildStIndicadores(p, st){
 }
 
 function buildStTabelaExecutiva(p,st){
+  const ia = st.hasIAData;
   return `
   <div class="st-section">
     <div class="st-sec-header">
@@ -1428,22 +1466,25 @@ function buildStTabelaExecutiva(p,st){
     </div>
     <div class="st-table-wrap">
       <table class="st-table">
-        <thead><tr><th></th><th>Indicador</th><th style="text-align:right">Valor Atual</th></tr></thead>
+        <thead><tr><th></th><th>Indicador</th><th style="text-align:right">Sem IA</th>${ia?'<th style="text-align:right">Com IA</th><th style="text-align:right">Economia</th>':''}</tr></thead>
         <tbody>
           <tr class="st-table-row">
             <td class="st-td-icon">📦</td>
             <td class="st-td-label">Volume / mês</td>
             <td class="st-td-val neutral">${st.volMes.toLocaleString('pt-BR')}</td>
+            ${ia?`<td class="st-td-val neutral">${st.volMes.toLocaleString('pt-BR')}</td><td class="st-td-val neutral">—</td>`:''}
           </tr>
           <tr class="st-table-row">
             <td class="st-td-icon">⏱️</td>
-            <td class="st-td-label">Tempo médio atual</td>
+            <td class="st-td-label">Tempo médio</td>
             <td class="st-td-val neutral">${st.tempoAtual}min</td>
+            ${ia?`<td class="st-td-val positive">${st.tempoIA}min</td><td class="st-td-val positive">−${(st.tempoAtual-st.tempoIA).toFixed(0)}min</td>`:''}
           </tr>
           <tr class="st-table-row highlight">
             <td class="st-td-icon">🕐</td>
             <td class="st-td-label bold">Horas totais / mês</td>
-            <td class="st-td-val positive big">${st.horasAtuais}h</td>
+            <td class="st-td-val big">${st.horasAtuais}h</td>
+            ${ia?`<td class="st-td-val positive big">${st.horasComIA}h</td><td class="st-td-val positive big">−${st.horasEcon}h (${st.eficienciaPct}%)</td>`:''}
           </tr>
         </tbody>
       </table>
@@ -1453,7 +1494,9 @@ function buildStTabelaExecutiva(p,st){
 
 function buildStCalculos(st){
   return `<div class="st-section"><div class="st-sec-header"><span class="st-sec-icon">🧮</span><span class="st-sec-title">Metodologia de Cálculo</span></div>
-    <div class="st-calculo-item" style="border-left:3px solid var(--teal)"><div class="st-calculo-title" style="color:var(--teal)">Tempo Total / Mês</div><code class="st-calculo-formula">(Volumetria × Tempo Atual) ÷ 60</code><div class="st-calculo-resultado">= (${st.volMes.toLocaleString('pt-BR')} × ${st.tempoAtual}) ÷ 60 = <b>${st.horasAtuais}h</b></div></div>
+    <div class="st-calculo-item" style="border-left:3px solid var(--gold)"><div class="st-calculo-title" style="color:var(--gold)">Horas / Mês Sem IA</div><code class="st-calculo-formula">(Volumetria × Tempo Atual) ÷ 60</code><div class="st-calculo-resultado">= (${st.volMes.toLocaleString('pt-BR')} × ${st.tempoAtual}) ÷ 60 = <b>${st.horasAtuais}h</b></div></div>
+    ${st.hasIAData?`<div class="st-calculo-item" style="border-left:3px solid var(--teal)"><div class="st-calculo-title" style="color:var(--teal)">Horas / Mês Com IA</div><code class="st-calculo-formula">(Volumetria × Tempo com IA) ÷ 60</code><div class="st-calculo-resultado">= (${st.volMes.toLocaleString('pt-BR')} × ${st.tempoIA}) ÷ 60 = <b>${st.horasComIA}h</b></div></div>
+    <div class="st-calculo-item" style="border-left:3px solid var(--green)"><div class="st-calculo-title" style="color:var(--green)">Economia / Mês</div><code class="st-calculo-formula">Horas Sem IA − Horas Com IA</code><div class="st-calculo-resultado">= ${st.horasAtuais}h − ${st.horasComIA}h = <b>${st.horasEcon}h (${st.eficienciaPct}%)</b></div></div>`:''}
   </div>`;
 }
 function buildStVolumetriaHC(p,st){
