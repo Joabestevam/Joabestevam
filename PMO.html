@@ -340,26 +340,14 @@
           <!-- Preview calculado -->
           <div class="efic-preview" id="eficPreview" style="display:none">
             <div class="efic-prev-header">🔢 Calculado automaticamente</div>
-            <div class="efic-prev-row">
-              <div class="efic-prev-item teal">
+            <div class="efic-prev-row" style="grid-template-columns:1fr">
+              <div class="efic-prev-item teal" style="border-right:none">
                 <div class="efic-prev-ico">🕐</div>
                 <div class="efic-prev-val" id="prev-total-gasto">—</div>
                 <div class="efic-prev-lbl">Tempo Total / Mês</div>
                 <div class="efic-prev-formula" id="prev-f1"></div>
               </div>
-              <div class="efic-prev-item blue">
-                <div class="efic-prev-ico">🔭</div>
-                <input class="form-input" id="prev-vol-proj" placeholder="Volumetria projetada"/>
-                <div class="efic-prev-lbl">Volumetria Projetada</div>
-              <div class="efic-prev-formula" id="prev-f2"></div></div>
-              <div class="efic-prev-item green">
-                <div class="efic-prev-ico">⚡</div>
-                <div class="efic-prev-val" id="prev-total-ia">—</div>
-                <div class="efic-prev-lbl">Tempo Total c/ IA</div>
-                <div class="efic-prev-formula" id="prev-f3"></div>
-              </div>
             </div>
-            <div class="efic-eficiencia-badge" id="eficBadge"></div>
           </div>
         </div>
 
@@ -1253,46 +1241,15 @@ function toggleOptional(){
 function previewEficiencia(){
   const volMes = parseFloat(document.getElementById('f-vol-mes')?.value) || 0;
   const tempoAtual = parseFloat(document.getElementById('f-tempo-atual')?.value) || 0;
-  const tempoIA = parseFloat(document.getElementById('f-tempo-ia')?.value) || 0;
-
   const preview = document.getElementById('eficPreview');
   const alert = document.getElementById('eficAlert');
-
   if (!preview) return;
-
-  if (tempoIA > 0 && tempoAtual > 0 && tempoIA >= tempoAtual) {
-    alert.style.display = 'flex';
-    alert.innerHTML = '⚠️ O Tempo com IA deve ser menor que o Tempo Atual.';
-    preview.style.display = 'none';
-    return;
-  } else {
-    alert.style.display = 'none';
-  }
-
-  if (volMes > 0 && tempoAtual > 0 && tempoIA > 0) {
-
-    const input = document.getElementById('prev-vol-proj'); // ✅ AQUI
-
-    const fatorX = tempoAtual / tempoIA;
+  alert.style.display = 'none';
+  if (volMes > 0 && tempoAtual > 0) {
     const horasAtuais = ((volMes * tempoAtual) / 60).toFixed(1);
-    const volProj = Math.round(volMes * fatorX);
-    const horasIA = ((volMes * tempoIA) / 60).toFixed(1);
-    const efic = Math.round(((horasAtuais - horasIA) / horasAtuais) * 100);
-
     document.getElementById('prev-total-gasto').textContent = horasAtuais + 'h';
-
-    // ✅ só preenche automático se não editou
-    if (!input.value) {
-      input.value = volProj;
-    }
-
-    document.getElementById('prev-total-ia').textContent = horasIA + 'h';
-
-    document.getElementById('eficBadge').textContent =
-      `⚡ ${efic}% de ganho de eficiência operacional`;
-
+    document.getElementById('prev-f1').textContent = `${volMes.toLocaleString('pt-BR')} × ${tempoAtual} ÷ 60`;
     preview.style.display = 'block';
-
   } else {
     preview.style.display = 'none';
   }
