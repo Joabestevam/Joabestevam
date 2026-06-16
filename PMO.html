@@ -1076,8 +1076,8 @@ function calcEstatisticas(p){
     ? parseFloat((tempoAtual / tempoIA).toFixed(2)) 
     : 0;
 
-  const horasAtuais = hasData 
-    ? parseFloat(((volMes * tempoAtual) / 60).toFixed(1)) 
+  const horasAtuais = (volMes > 0 && tempoAtual > 0)
+    ? parseFloat(((volMes * tempoAtual) / 60).toFixed(1))
     : 0;
 
   const volProjetadaAuto = hasData 
@@ -1530,9 +1530,9 @@ function buildStIndicadores(p, st){
     </div>
     <div class="st-ind-lbl">Tempo Total / Mês</div>
     <div class="st-ind-sub">
-      ${st.hasData 
-        ? `${st.volMes.toLocaleString('pt-BR')} × ${st.tempoAtual}÷60` 
-        : 'preencha os dados'}
+      ${st.horasAtuais > 0
+        ? `${st.volMes.toLocaleString('pt-BR')} × ${st.tempoAtual}÷60`
+        : 'preencha Volume e Tempo Atual'}
     </div>
   </div>`;
 
