@@ -239,13 +239,13 @@
               <div class="estage-check">✓</div>
               <div class="estage-label">Desenvolvimento</div>
             </div>
-            <div class="exec-stage" data-etapa="integr" onclick="toggleExecWizard(this)">
-              <div class="estage-check">✓</div>
-              <div class="estage-label">Integração</div>
-            </div>
             <div class="exec-stage" data-etapa="testes" onclick="toggleExecWizard(this)">
               <div class="estage-check">✓</div>
               <div class="estage-label">Testes</div>
+            </div>
+            <div class="exec-stage" data-etapa="integr" onclick="toggleExecWizard(this)">
+              <div class="estage-check">✓</div>
+              <div class="estage-label">Integração</div>
             </div>
             <div class="exec-stage" data-etapa="prod" onclick="toggleExecWizard(this)">
               <div class="estage-check">✓</div>
@@ -1668,7 +1668,7 @@ function buildStVolumetriaHC(p,st){
 function openDetail(id){
   const p=projects.find(x=>x.id===id);if(!p)return;
   const pct=progPct(p.exec);
-  const ETAPAS=[{k:'plan',l:'Planej.'},{k:'dev',l:'Dev.'},{k:'integr',l:'Integr.'},{k:'testes',l:'Testes'},{k:'prod',l:'Prod.'}];
+  const ETAPAS=[{k:'plan',l:'Planej.'},{k:'dev',l:'Dev.'},{k:'testes',l:'Testes'},{k:'integr',l:'Integr.'},{k:'prod',l:'Prod.'}];
   const stagesHTML=ETAPAS.map(e=>`<span class="stage-chip ${p.exec[e.k]?'done':'todo'}">${p.exec[e.k]?'✓':'○'} ${e.l}</span>`).join('');
   const ganhosHTML=p.ganhos.length?p.ganhos.map(g=>`<div class="d-ganho"><div class="d-ganho-ico">↗</div><span>${sanitize(g)}</span></div>`).join(''):'<span style="color:var(--t3);font-size:12px">A definir</span>';
   const respHTML=p.responsaveis.length?p.responsaveis.map(r=>`<div class="d-resp-item"><div class="d-av">${sanitize(initials(r))}</div><span class="d-resp-name">${sanitize(r)}</span></div>`).join(''):'<span style="color:var(--t3);font-size:12px">Não definido</span>';
@@ -1731,7 +1731,7 @@ function buildNotasRespCol(p){
 
 function renderCard(p){
   const pct=progPct(p.exec);
-  const ETAPAS=[{k:'plan',l:'Plan.'},{k:'dev',l:'Dev.'},{k:'integr',l:'Integr.'},{k:'testes',l:'Testes'},{k:'prod',l:'Prod.'}];
+  const ETAPAS=[{k:'plan',l:'Plan.'},{k:'dev',l:'Dev.'},{k:'testes',l:'Testes'},{k:'integr',l:'Integr.'},{k:'prod',l:'Prod.'}];
   const execHTML=ETAPAS.map(e=>`<div class="exec-item" onclick="event.stopPropagation();toggleExecCard(${p.id},'${e.k}')"><span class="${p.exec[e.k]?'chk':'nchk'}">${p.exec[e.k]?'✓':''}</span><span>${sanitize(e.l)}</span></div>`).join('');
   const ganhosHTML=p.ganhos.length?p.ganhos.slice(0,3).map(g=>`<div class="ganho"><span class="g-ico">↗</span>${sanitize(g)}</div>`).join(''):'<span class="empty">A definir</span>';
   const sistemasHTML=p.sistemas.length?`<div class="tags">${p.sistemas.map(s=>`<span class="tag">${sanitize(s)}</span>`).join('')}</div>`:'<span class="empty">—</span>';
@@ -1762,7 +1762,7 @@ function renderCard(p){
 
 function buildMobileCard(p){
   const pct=progPct(p.exec);
-  const ETAPAS=[{k:'plan',l:'Plan.'},{k:'dev',l:'Dev.'},{k:'integr',l:'Integr.'},{k:'testes',l:'Testes'},{k:'prod',l:'Prod.'}];
+  const ETAPAS=[{k:'plan',l:'Plan.'},{k:'dev',l:'Dev.'},{k:'testes',l:'Testes'},{k:'integr',l:'Integr.'},{k:'prod',l:'Prod.'}];
   const execHTML=ETAPAS.map(e=>`<div class="exec-item" onclick="event.stopPropagation();toggleExecCard(${p.id},'${e.k}')"><span class="${p.exec[e.k]?'chk':'nchk'}">${p.exec[e.k]?'✓':''}</span><span>${sanitize(e.l)}</span></div>`).join('');
   const ganhosHTML=p.ganhos.length?p.ganhos.map(g=>`<div class="ganho"><span class="g-ico">↗</span>${sanitize(g)}</div>`).join(''):'<span class="empty">A definir</span>';
   const respHTML=p.responsaveis.length?`<div class="resp-avatars">${p.responsaveis.map(r=>`<div class="av-wrap" title="${sanitize(r)}"><div class="av">${sanitize(initials(r))}</div><span class="av-name">${sanitize(r.split(' ')[0])}</span></div>`).join('')}</div>`:'<span class="empty">—</span>';
