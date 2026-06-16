@@ -367,14 +367,6 @@
               <input class="form-input" id="f-statintegr" placeholder="Ex: Em Desenvolvimento">
             </div>
             <div class="form-group" style="margin-top:10px">
-              <label class="form-label">Tipo de Ganho</label>
-              <input class="form-input" id="f-tipoganha" placeholder="Ex: Redução de Custo">
-            </div>
-            <div class="form-group" style="margin-top:10px">
-              <label class="form-label">Ganho Financeiro Estimado (R$)</label>
-              <input class="form-input" id="f-ganhofinanceiro" placeholder="Ex: 50000">
-            </div>
-            <div class="form-group" style="margin-top:10px">
               <label class="form-label">Dependências / Riscos</label>
               <input class="form-input" id="f-risco" placeholder="Ex: Aguardando retorno T.I">
             </div>
@@ -1247,8 +1239,7 @@ function openModal(id=null){
     set('f-inicio',p.inicio||'');set('f-entrega',p.entrega||'');
     set('f-hc',p.hc||'');
     set('f-sistemas',p.sistemas?.join(', ')||'');set('f-ferramentas',p.ferramentas||'');
-    set('f-statintegr',p.statintegr||'');set('f-tipoganha',p.tipoganha||'');
-    set('f-ganhofinanceiro',p.ganhofinanceiro||'');set('f-risco',p.risco||'');
+    set('f-statintegr',p.statintegr||'');set('f-risco',p.risco||'');
     set('f-detalhes',p.detalhes||'');
     set('f-vol-mes',p.volMes||'');set('f-tempo-atual',p.tempoAtual||'');set('f-tempo-ia',p.tempoIA||'');
     document.getElementById('f-tipo').value=p.tipo||'IA';
@@ -1268,7 +1259,7 @@ function openModal(id=null){
     // Preview
     previewEficiencia();
   }else{
-    ['f-nome','f-desc','f-inicio','f-entrega','f-hc','f-sistemas','f-ferramentas','f-statintegr','f-tipoganha','f-ganhofinanceiro','f-risco','f-detalhes','f-vol-mes','f-tempo-atual','f-tempo-ia'].forEach(fid=>{const el=document.getElementById(fid);if(el)el.value='';});
+    ['f-nome','f-desc','f-inicio','f-entrega','f-hc','f-sistemas','f-ferramentas','f-statintegr','f-risco','f-detalhes','f-vol-mes','f-tempo-atual','f-tempo-ia'].forEach(fid=>{const el=document.getElementById(fid);if(el)el.value='';});
     document.getElementById('f-tipo').value='IA';
     document.getElementById('f-status').value='andamento';
     document.querySelector('.imp-btn.imp-alto')?.classList.add('selected');
@@ -1301,9 +1292,6 @@ function saveProject(){
       .filter(Boolean),
 
     hc:parseInt(document.getElementById('f-hc').value)||0,
-
-    tipoganha:g('f-tipoganha'),
-    ganhofinanceiro:g('f-ganhofinanceiro'),
 
     sistemas:g('f-sistemas').split(',').map(s=>s.trim()).filter(Boolean),
     ferramentas:g('f-ferramentas'),
@@ -1515,7 +1503,6 @@ function openDetail(id){
     ${st.hasData?`<div class="d-fin-item"><div class="d-fin-val" style="color:var(--gold)">${st.horasAtuais}h</div><div class="d-fin-lbl">Horas Sem IA 🕐</div></div>`:''}
     ${st.hasIAData?`<div class="d-fin-item"><div class="d-fin-val" style="color:var(--teal)">${st.horasComIA}h</div><div class="d-fin-lbl">Horas Com IA 🤖</div></div>`:''}
     ${st.hasIAData?`<div class="d-fin-item"><div class="d-fin-val" style="color:var(--green)">−${st.eficienciaPct}%</div><div class="d-fin-lbl">Economia</div></div>`:''}
-    ${p.ganhofinanceiro?`<div class="d-fin-item"><div class="d-fin-val">R$ ${sanitize(p.ganhofinanceiro)}</div><div class="d-fin-lbl">Ganho R$</div></div>`:''}
   </div>`;
   const notasSection=p.detalhes?`<div class="detail-section notas-hl full"><div class="detail-sec-title notas-t"><span>📝</span> Notas &amp; Detalhes</div><div class="d-notas">${sanitize(p.detalhes)}</div></div>`:'';
   document.getElementById('detailModal').innerHTML=`
@@ -1526,7 +1513,7 @@ function openDetail(id){
     </div>
     <div class="detail-body">
       ${notasSection}
-      <div class="detail-section"><div class="detail-sec-title"><span>↗</span> Ganhos Esperados</div><div class="d-ganhos">${ganhosHTML}</div>${p.tipoganha?`<span class="tipo-ganho" style="margin-top:6px">${sanitize(p.tipoganha)}</span>`:''}</div>
+      <div class="detail-section"><div class="detail-sec-title"><span>↗</span> Ganhos Esperados</div><div class="d-ganhos">${ganhosHTML}</div></div>
       <div class="detail-section"><div class="detail-sec-title"><span>📅</span> Datas</div><div class="d-kv"><div class="d-kv-item"><span class="d-kv-lbl">Início</span><span class="d-kv-val">${fmtDateFull(p.inicio)}</span></div><div class="d-kv-item"><span class="d-kv-lbl">Entrega</span><span class="d-kv-val ${!p.entrega?'empty':''}">${fmtDateFull(p.entrega)}</span></div></div></div>
       <div class="detail-section full"><div class="detail-sec-title"><span>📊</span> Headcount &amp; Volumetria</div>${finBoxes}<button class="hcvs-open-btn" onclick="closeDetail();openStatsModal(${p.id})">📈 Ver Estatísticas</button></div>
       <div class="detail-section"><div class="detail-sec-title"><span>⚙️</span> Tecnologia</div>${sistemasHTML}${p.ferramentas?`<div class="d-kv-item" style="margin-top:8px"><span class="d-kv-lbl">Ferramentas</span><span class="d-kv-val">${sanitize(p.ferramentas)}</span></div>`:''}</div>
