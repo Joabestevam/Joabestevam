@@ -332,10 +332,6 @@
               <label class="form-label">Tempo Médio Atual <span class="form-label-hint">(min)</span> <span class="manual-badge">✍️</span></label>
               <input class="form-input" id="f-tempo-atual" type="number" min="0" placeholder="Ex: 15" oninput="previewEficiencia()">
             </div>
-            <div class="form-group">
-              <label class="form-label">Tempo Médio com IA <span class="form-label-hint">(min)</span> <span class="manual-badge">✍️</span></label>
-              <input class="form-input" id="f-tempo-ia" type="number" min="0" placeholder="Ex: 3" oninput="previewEficiencia()">
-            </div>
           </div>
 
           <!-- Alerta de validação -->
@@ -791,7 +787,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t1);min-hei
 .btn-add-ganho:hover{background:var(--s3);color:var(--t1);}
 
 /* Eficiência */
-.efic-inputs-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+.efic-inputs-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .efic-alert{padding:10px 14px;border-radius:8px;font-size:12px;font-weight:500;background:var(--yellow-s);border:1px solid rgba(176,125,16,.25);color:var(--yellow);display:flex;align-items:center;gap:8px;}
 .efic-preview{background:var(--s2);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
 .efic-prev-header{padding:10px 14px;font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--t3);border-bottom:1px solid var(--border);background:var(--s3);}
@@ -1335,7 +1331,7 @@ function openModal(id=null){
     set('f-statintegr',p.statintegr||'');set('f-tipoganha',p.tipoganha||'');
     set('f-ganhofinanceiro',p.ganhofinanceiro||'');set('f-risco',p.risco||'');
     set('f-detalhes',p.detalhes||'');
-    set('f-vol-mes',p.volMes||'');set('f-tempo-atual',p.tempoAtual||'');set('f-tempo-ia',p.tempoIA||'');
+    set('f-vol-mes',p.volMes||'');set('f-tempo-atual',p.tempoAtual||'');
     document.getElementById('f-tipo').value=p.tipo||'IA';
     document.getElementById('f-status').value=p.status||'andamento';
     // Impact
@@ -1353,7 +1349,7 @@ function openModal(id=null){
     // Preview
     previewEficiencia();
   }else{
-    ['f-nome','f-desc','f-inicio','f-entrega','f-hc','f-fte','f-sistemas','f-ferramentas','f-statintegr','f-tipoganha','f-ganhofinanceiro','f-risco','f-detalhes','f-vol-mes','f-tempo-atual','f-tempo-ia','f-vol-proj-manual'].forEach(fid=>{const el=document.getElementById(fid);if(el)el.value='';});
+    ['f-nome','f-desc','f-inicio','f-entrega','f-hc','f-fte','f-sistemas','f-ferramentas','f-statintegr','f-tipoganha','f-ganhofinanceiro','f-risco','f-detalhes','f-vol-mes','f-tempo-atual','f-vol-proj-manual'].forEach(fid=>{const el=document.getElementById(fid);if(el)el.value='';});
     document.getElementById('f-tipo').value='IA';
     document.getElementById('f-status').value='andamento';
     document.querySelector('.imp-btn.imp-alto')?.classList.add('selected');
@@ -1405,7 +1401,7 @@ const data = {
 
     volMes:parseFloat(document.getElementById('f-vol-mes').value)||null,
     tempoAtual:parseFloat(document.getElementById('f-tempo-atual').value)||null,
-    tempoIA:parseFloat(document.getElementById('f-tempo-ia').value)||null,
+    tempoIA:null,
 
     volProjManual: parseFloat(volProjPreview?.value) || null
   };
