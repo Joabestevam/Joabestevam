@@ -1447,6 +1447,9 @@ function buildStIndicadores(p, st){
 
 function buildStTabelaExecutiva(p,st){
   const ia = st.hasIAData;
+  const pctTempo = ia ? Math.round((1 - st.tempoIA/st.tempoAtual)*100) : 0;
+  const pctHoras = ia ? st.eficienciaPct : 0;
+  const pctTag = v => `<span style="display:inline-block;background:rgba(34,197,94,.15);color:var(--green);font-weight:700;font-size:11px;padding:2px 7px;border-radius:99px">−${v}%</span>`;
   return `
   <div class="st-section">
     <div class="st-sec-header">
@@ -1455,32 +1458,26 @@ function buildStTabelaExecutiva(p,st){
     </div>
     <div class="st-table-wrap">
       <table class="st-table">
-        <thead><tr><th></th><th>Indicador</th><th style="text-align:right">Sem IA</th>${ia?'<th style="text-align:right">Com IA</th><th style="text-align:right">Economia</th>':''}</tr></thead>
+        <thead><tr><th></th><th>Indicador</th><th style="text-align:right">Atual</th>${ia?'<th style="text-align:center">%</th><th style="text-align:right">Com IA</th>':''}</tr></thead>
         <tbody>
           <tr class="st-table-row">
             <td class="st-td-icon">📦</td>
             <td class="st-td-label">Volume / mês</td>
             <td class="st-td-val neutral">${st.volMes.toLocaleString('pt-BR')}</td>
-            ${ia?`<td class="st-td-val neutral">${st.volMes.toLocaleString('pt-BR')}</td><td class="st-td-val neutral">—</td>`:''}
+            ${ia?`<td class="st-td-val" style="text-align:center">—</td><td class="st-td-val neutral">${st.volMes.toLocaleString('pt-BR')}</td>`:''}
           </tr>
           <tr class="st-table-row">
             <td class="st-td-icon">⏱️</td>
-            <td class="st-td-label">Tempo médio</td>
+            <td class="st-td-label">Tempo por atividade</td>
             <td class="st-td-val neutral">${st.tempoAtual}min</td>
-            ${ia?`<td class="st-td-val positive">${st.tempoIA}min</td><td class="st-td-val positive">−${(st.tempoAtual-st.tempoIA).toFixed(0)}min</td>`:''}
+            ${ia?`<td class="st-td-val" style="text-align:center">${pctTag(pctTempo)}</td><td class="st-td-val positive">${st.tempoIA}min</td>`:''}
           </tr>
           <tr class="st-table-row highlight">
             <td class="st-td-icon">🕐</td>
-            <td class="st-td-label bold">Horas totais / mês</td>
+            <td class="st-td-label bold">Tempo Total / Mês</td>
             <td class="st-td-val big">${st.horasAtuais}h</td>
-            ${ia?`<td class="st-td-val positive big">${st.horasComIA}h</td><td class="st-td-val positive big">−${st.horasEcon}h</td>`:''}
+            ${ia?`<td class="st-td-val" style="text-align:center">${pctTag(pctHoras)}</td><td class="st-td-val positive big">${st.horasComIA}h</td>`:''}
           </tr>
-          ${ia?`<tr class="st-table-row" style="background:rgba(34,197,94,.07)">
-            <td class="st-td-icon">📈</td>
-            <td class="st-td-label bold" style="color:var(--green)">Ganho de Eficiência</td>
-            <td class="st-td-val neutral">—</td>
-            <td class="st-td-val positive big" style="color:var(--green);font-size:16px" colspan="2">${st.eficienciaPct}% menos tempo</td>
-          </tr>`:''}
         </tbody>
       </table>
     </div>
