@@ -43,9 +43,9 @@
         <div class="kpi-foot"><div id="kbar-ativos"></div></div>
       </div>
       <div class="kpi k3">
-        <div class="kpi-row"><div class="kpi-ico">👥</div><span class="kpi-tag tag-up">HC</span></div>
+        <div class="kpi-row"><div class="kpi-ico">👥</div><span class="kpi-tag tag-up">FTE</span></div>
         <div class="kpi-val" id="kpi-hc">0</div>
-        <div class="kpi-lbl">Projeção de Ganho HC</div>
+        <div class="kpi-lbl">Redução de Headcount (FTE)</div>
         <div class="kpi-foot"><div id="kbar-hc"></div></div>
       </div>
       <div class="kpi k4">
@@ -83,6 +83,12 @@
           <input type="file" id="csvInput" accept=".csv" style="display:none" onchange="handleCSV(event)">
         </div>
         <div class="cb-actions-right">
+          <select class="sort-select" id="sortSelect" onchange="renderAll()">
+            <option value="default">Ordenar…</option>
+            <option value="name">Nome A–Z</option>
+            <option value="progress-desc">Progresso ↓</option>
+            <option value="delivery-asc">Entrega ↑</option>
+          </select>
           <div class="search">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
             <input type="text" id="searchInput" placeholder="Buscar projeto…" oninput="renderAll()">
@@ -573,6 +579,12 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t1);min-hei
 .search:focus-within{border-color:var(--blue-m);box-shadow:0 0 0 3px var(--blue-s);}
 .search input{border:none;outline:none;font-size:12px;font-family:'Inter',sans-serif;color:var(--t1);background:transparent;width:160px;}
 .search input::placeholder{color:var(--t3);}
+.sort-select{background:var(--s1);border:1px solid var(--border);border-radius:7px;padding:6px 10px;font-size:11px;font-family:'Inter',sans-serif;color:var(--t2);cursor:pointer;outline:none;transition:border-color .2s;}
+.sort-select:focus{border-color:var(--blue-m);}
+.date-val.overdue{color:var(--red)!important;font-weight:700;}
+.overdue-badge{display:inline-flex;align-items:center;gap:3px;background:var(--red-s);color:var(--red);border:1px solid rgba(192,57,43,.2);border-radius:5px;font-size:9px;font-weight:700;padding:1px 6px;margin-top:2px;}
+.proj-card.overdue-card{border-color:rgba(192,57,43,.3);}
+.proj-card.overdue-card::before{background:var(--red)!important;}
 
 /* ══════════════════════════════════════
    DRAG ZONE
@@ -682,7 +694,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--t1);min-hei
 .footer{background:var(--s1);border:1px solid var(--border);border-radius:var(--r16);padding:12px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;box-shadow:var(--shadow-card)}
 .footer-left{font-size:11px;color:var(--t3)}.footer-right{font-size:11px;color:var(--t3)}.footer-right b{color:var(--t2);font-weight:700}
 .toast{position:fixed;bottom:20px;right:16px;left:16px;max-width:400px;margin:0 auto;background:var(--s1);border:1px solid var(--border2);border-left:3px solid var(--green);border-radius:10px;padding:12px 18px;font-size:12px;color:var(--t1);z-index:9999;display:none;box-shadow:var(--shadow-modal);animation:slideIn .3s ease}
-.toast.err{border-left-color:var(--red)}.toast.show{display:block}
+.toast.err{border-left-color:var(--red)}.toast.show{display:flex;align-items:center;gap:8px}
 @keyframes slideIn{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
 
 /* ══════════════════════════════════════
@@ -1046,7 +1058,7 @@ function load(){
   catch{projects=JSON.parse(JSON.stringify(DEFAULT_PROJECTS));}
   nextId=projects.length?Math.max(...projects.map(p=>p.id))+1:1;
 }
-function showToast(msg,err=false){const el=document.getElementById('toast');el.textContent=msg;el.className=`toast show${err?' err':''}`;clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),3500);}
+function showToast(msg,err=false){const el=document.getElementById('toast');el.innerHTML=`<span style="flex:1">${msg}</span><button onclick="document.getElementById('toast').classList.remove('show')" style="background:none;border:none;cursor:pointer;font-size:15px;color:inherit;padding:0;opacity:.6;flex-shrink:0;font-family:Inter,sans-serif;line-height:1">✕</button>`;el.className=`toast show${err?' err':''}`;clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),6000);}
 function statusBadge(s){const m={andamento:'<span class="badge b-and"><span class="bdot"></span>Em Andamento</span>',integracao:'<span class="badge b-int"><span class="bdot"></span>Em Integração</span>',dev:'<span class="badge b-dev"><span class="bdot"></span>Em Dev.</span>',pipe:'<span class="badge b-pip"><span class="bdot"></span>Em Estruturação</span>'};return m[s]||'';}
 function impactoBadge(i){if(i==='Alto')return '<span class="imp-alto">⚡ Alto</span>';if(i==='Médio')return '<span class="imp-medio">🔸 Médio</span>';if(i==='Baixo')return '<span class="imp-baixo">🔹 Baixo</span>';return '';}
 
@@ -1428,16 +1440,16 @@ function parseCSV(text){
   const dataRows=tokenizeRows(text).filter(r=>r.trim()).slice(2);
   if(!dataRows.length)return null;
   const result=[];let id=1;
-  dataRows.forEach(raw=>{const c=splitCols(raw);const nome=(c[0]||'').trim();if(!nome)return;result.push({id:id++,nome,tipo:(c[1]||'IA').trim(),desc:(c[2]||'').trim(),status:mapStatus(c[3]),exec:{plan:(c[4]||'').trim().toLowerCase()==='ok',dev:(c[5]||'').trim().toLowerCase()==='ok',integr:(c[6]||'').trim().toLowerCase()==='ok',testes:(c[7]||'').trim().toLowerCase()==='ok',prod:(c[8]||'').trim().toLowerCase()==='ok'},inicio:dateBR(c[10]),entrega:dateBR(c[11]),ganhos:(c[12]||'').split('\n').map(g=>g.trim()).filter(Boolean),hc:parseInt(c[14])||0,fte:parseInt(c[15])||0,tipoganha:(c[16]||'').trim(),ganhofinanceiro:(c[17]||'').trim(),sistemas:[...new Set((c[18]||'').split(/[\/,]/).map(s=>s.trim()).filter(Boolean))],ferramentas:(c[19]||'').trim(),statintegr:(c[20]||'').trim(),responsaveis:[],risco:(c[21]||'').trim(),detalhes:(c[22]||'').trim(),impacto:mapImpacto(c[23]),volMes:parseFloat(c[24])||null,tempoAtual:parseFloat(c[25])||null,tempoIA:parseFloat(c[26])||null});});
+  dataRows.forEach(raw=>{const c=splitCols(raw);const nome=(c[0]||'').trim();if(!nome)return;result.push({id:id++,nome,tipo:(c[1]||'IA').trim(),desc:(c[2]||'').trim(),status:mapStatus(c[3]),exec:{plan:(c[4]||'').trim().toLowerCase()==='ok',dev:(c[5]||'').trim().toLowerCase()==='ok',integr:(c[6]||'').trim().toLowerCase()==='ok',testes:(c[7]||'').trim().toLowerCase()==='ok',prod:(c[8]||'').trim().toLowerCase()==='ok'},inicio:dateBR(c[10]),entrega:dateBR(c[11]),ganhos:(c[12]||'').split('\n').map(g=>g.trim()).filter(Boolean),hc:parseInt(c[14])||0,fte:parseInt(c[15])||0,tipoganha:(c[16]||'').trim(),ganhofinanceiro:(c[17]||'').trim(),sistemas:[...new Set((c[18]||'').split(/[\/,]/).map(s=>s.trim()).filter(Boolean))],ferramentas:(c[19]||'').trim(),statintegr:(c[20]||'').trim(),risco:(c[21]||'').trim(),detalhes:(c[22]||'').trim(),responsaveis:(c[23]||'').split('\n').map(r=>r.trim()).filter(Boolean),impacto:mapImpacto(c[24]),volMes:parseFloat(c[25])||null,tempoAtual:parseFloat(c[26])||null,tempoIA:parseFloat(c[27])||null});});
   return result.length?result:null;
 }
 function exportCSV(){
   const H1='Identificação;;Execução;;;;;;;;;;Valor / Ganhos;;;;;;Tecnologia / Integrações;;;PMO;;;Produtividade;;;';
-  const H2='Projeto/Agente;IA ou Automação;Objetivo;Status;Planejamento;Desenvolvimento;Integração;Testes;Produção;% Concluído;Data Início;Previsão Entrega;Ganho Esperado;Volumetria Atual (Mês);Headcount Dedicado Atual;Redução de Headcount (FTE);Tipo de Ganho;Ganho Financeiro Estimado (R$);Sistemas Envolvidos;Ferramentas;Status Integração;Dependências;Detalhes do Processo;Impacto;Volumetria/Mês;Tempo Atual (min);Tempo com IA (min)';
+  const H2='Projeto/Agente;IA ou Automação;Objetivo;Status;Planejamento;Desenvolvimento;Integração;Testes;Produção;% Concluído;Data Início;Previsão Entrega;Ganho Esperado;Volumetria Atual (Mês);Headcount Dedicado Atual;Redução de Headcount (FTE);Tipo de Ganho;Ganho Financeiro Estimado (R$);Sistemas Envolvidos;Ferramentas;Status Integração;Dependências;Detalhes do Processo;Responsáveis;Impacto;Volumetria/Mês;Tempo Atual (min);Tempo com IA (min)';
   const STATUS={andamento:'Em andamento',integracao:'Em integração',dev:'Em desenvolvimento',pipe:'Em estruturação'};
   const fmtD=d=>{if(!d)return '';const[y,m,dd]=d.split('-');return `${dd}/${m}/${y}`;};
   const q=v=>!v?'':(String(v).includes('\n')||String(v).includes(';'))?'"'+String(v).replace(/"/g,'""')+'"':String(v);
-  const rows=projects.map(p=>{const ok=v=>v?'ok':'';const pct=['plan','dev','integr','testes','prod'].filter(k=>p.exec[k]).length*20;return[p.nome,p.tipo,p.desc,STATUS[p.status]||p.status,ok(p.exec.plan),ok(p.exec.dev),ok(p.exec.integr),ok(p.exec.testes),ok(p.exec.prod),pct+'%',fmtD(p.inicio),fmtD(p.entrega),q(p.ganhos.join('\n')),'',p.hc||'',p.fte||'',p.tipoganha||'',p.ganhofinanceiro||'',p.sistemas.join('/'),p.ferramentas||'',p.statintegr||'',p.risco||'',q(p.detalhes||''),p.impacto||'',p.volMes||'',p.tempoAtual||'',p.tempoIA||''].join(';');});
+  const rows=projects.map(p=>{const ok=v=>v?'ok':'';const pct=['plan','dev','integr','testes','prod'].filter(k=>p.exec[k]).length*20;return[p.nome,p.tipo,p.desc,STATUS[p.status]||p.status,ok(p.exec.plan),ok(p.exec.dev),ok(p.exec.integr),ok(p.exec.testes),ok(p.exec.prod),pct+'%',fmtD(p.inicio),fmtD(p.entrega),q(p.ganhos.join('\n')),'',p.hc||'',p.fte||'',p.tipoganha||'',p.ganhofinanceiro||'',p.sistemas.join('/'),p.ferramentas||'',p.statintegr||'',p.risco||'',q(p.detalhes||''),q(p.responsaveis.join('\n')),p.impacto||'',p.volMes||'',p.tempoAtual||'',p.tempoIA||''].join(';');});
   const csv=[H1,H2,...rows].join('\r\n');
   const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
   const url=URL.createObjectURL(blob);
@@ -1731,12 +1743,13 @@ function buildNotasRespCol(p){
 
 function renderCard(p){
   const pct=progPct(p.exec);
+  const isOD=p.entrega&&p.status!=='pipe'&&pct<100&&new Date(p.entrega+'T00:00:00')<new Date();
   const ETAPAS=[{k:'plan',l:'Plan.'},{k:'dev',l:'Dev.'},{k:'testes',l:'Testes'},{k:'integr',l:'Integr.'},{k:'prod',l:'Prod.'}];
   const execHTML=ETAPAS.map(e=>`<div class="exec-item" onclick="event.stopPropagation();toggleExecCard(${p.id},'${e.k}')"><span class="${p.exec[e.k]?'chk':'nchk'}">${p.exec[e.k]?'✓':''}</span><span>${sanitize(e.l)}</span></div>`).join('');
   const ganhosHTML=p.ganhos.length?p.ganhos.slice(0,3).map(g=>`<div class="ganho"><span class="g-ico">↗</span>${sanitize(g)}</div>`).join(''):'<span class="empty">A definir</span>';
   const sistemasHTML=p.sistemas.length?`<div class="tags">${p.sistemas.map(s=>`<span class="tag">${sanitize(s)}</span>`).join('')}</div>`:'<span class="empty">—</span>';
   const card=document.createElement('div');
-  card.className=`proj-card st-${p.status}`;
+  card.className=`proj-card st-${p.status}${isOD?' overdue-card':''}`;
   card.onclick=()=>openDetail(p.id);
   card.innerHTML=`
     <div class="card-inner">
@@ -1749,18 +1762,18 @@ function renderCard(p){
       <div class="card-right"><div class="cols">
         <div class="col c-exec"><div class="col-hd">Execução</div><div class="exec-row">${execHTML}</div></div>
         <div class="col c-prog"><div class="col-hd">Progresso</div><div class="prog-wrap"><div class="prog-pct" style="color:${progColor(pct)}">${pct}%</div><div class="prog-bar"><div class="prog-fill" style="width:${pct}%;background:${progColor(pct)}"></div></div><div class="prog-sub">${progLbl(pct)}</div></div></div>
-        <div class="col c-datas"><div class="col-hd">Datas</div><div class="date-row"><div class="date-item"><span class="date-lbl">Início</span><span class="date-val">${fmtDate(p.inicio)}</span></div><div class="date-item"><span class="date-lbl">Entrega</span><span class="date-val">${fmtDate(p.entrega)}</span></div></div></div>
+        <div class="col c-datas"><div class="col-hd">Datas</div><div class="date-row"><div class="date-item"><span class="date-lbl">Início</span><span class="date-val">${fmtDate(p.inicio)}</span></div><div class="date-item"><span class="date-lbl">Entrega</span><span class="date-val${isOD?' overdue':''}">${fmtDate(p.entrega)}</span>${isOD?'<span class="overdue-badge">⚠ Vencido</span>':''}</div></div></div>
         <div class="col c-ganhos"><div class="col-hd">Ganhos</div><div class="ganhos">${ganhosHTML}</div>${p.tipoganha?`<span class="tipo-ganho" style="margin-top:6px">${sanitize(p.tipoganha)}</span>`:''}</div>
         ${buildHCVolCol(p)}
         <div class="col c-sistemas"><div class="col-hd">Tecnologia</div>${sistemasHTML}</div>
         ${buildNotasRespCol(p)}
       </div></div>
     </div>
-    ${buildMobileCard(p)}`;
+    ${buildMobileCard(p,isOD)}`;
   return card;
 }
 
-function buildMobileCard(p){
+function buildMobileCard(p,isOD=false){
   const pct=progPct(p.exec);
   const ETAPAS=[{k:'plan',l:'Plan.'},{k:'dev',l:'Dev.'},{k:'testes',l:'Testes'},{k:'integr',l:'Integr.'},{k:'prod',l:'Prod.'}];
   const execHTML=ETAPAS.map(e=>`<div class="exec-item" onclick="event.stopPropagation();toggleExecCard(${p.id},'${e.k}')"><span class="${p.exec[e.k]?'chk':'nchk'}">${p.exec[e.k]?'✓':''}</span><span>${sanitize(e.l)}</span></div>`).join('');
@@ -1775,7 +1788,7 @@ function buildMobileCard(p){
       <div class="card-mobile-section"><div class="card-mobile-sec-title">Execução</div><div class="exec-row">${execHTML}</div></div>
       <div class="card-mobile-grid">
         <div class="card-mobile-item"><span class="card-mobile-lbl">Início</span><span class="card-mobile-val">${fmtDate(p.inicio)}</span></div>
-        <div class="card-mobile-item"><span class="card-mobile-lbl">Entrega</span><span class="card-mobile-val">${fmtDate(p.entrega)}</span></div>
+        <div class="card-mobile-item"><span class="card-mobile-lbl">Entrega</span><span class="card-mobile-val${isOD?' overdue':''}">${fmtDate(p.entrega)}</span>${isOD?'<span class="overdue-badge">⚠ Vencido</span>':''}</div>
       </div>
       ${p.ganhos.length?`<div class="card-mobile-section"><div class="card-mobile-sec-title">Ganhos</div><div class="ganhos">${ganhosHTML}</div></div>`:''}
       ${p.responsaveis.length?`<div class="card-mobile-section"><div class="resp-lbl">Responsáveis</div>${respHTML}</div>`:''}
@@ -1793,10 +1806,15 @@ function buildMobileCard(p){
 ════════════════════════════════════════ */
 function renderAll(){
   const q=document.getElementById('searchInput').value.toLowerCase();
+  const sortVal=document.getElementById('sortSelect')?.value||'default';
+  let sorted=[...projects];
+  if(sortVal==='name')sorted.sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+  else if(sortVal==='progress-desc')sorted.sort((a,b)=>progPct(b.exec)-progPct(a.exec));
+  else if(sortVal==='delivery-asc')sorted.sort((a,b)=>{if(!a.entrega&&!b.entrega)return 0;if(!a.entrega)return 1;if(!b.entrega)return -1;return a.entrega.localeCompare(b.entrega);});
   const listA=document.getElementById('list-ativos');const listP=document.getElementById('list-pipe');
   listA.innerHTML=listP.innerHTML='';
   let cA=0,cP=0,cT=0;
-  projects.forEach(p=>{
+  sorted.forEach(p=>{
     const txt=[p.nome,p.desc,...(p.ganhos||[]),...(p.sistemas||[]),...(p.responsaveis||[]),p.detalhes||''].join(' ').toLowerCase();
     let show=true;
     if(curFilter!=='all')show=p.status===curFilter;
@@ -1812,20 +1830,26 @@ function renderAll(){
   document.getElementById('sec-pipe-cnt').textContent=`${cP} projeto${cP!==1?'s':''}`;
   document.getElementById('noResults').style.display=cT===0?'block':'none';
   updateKPIs();
+  updateFilterCounts();
+}
+function updateFilterCounts(){
+  const cnt={all:projects.length,andamento:projects.filter(p=>p.status==='andamento').length,integracao:projects.filter(p=>p.status==='integracao').length,dev:projects.filter(p=>p.status==='dev').length,pipe:projects.filter(p=>p.status==='pipe').length};
+  const lbl={all:'Todos',andamento:'Andamento',integracao:'Integração',dev:'Dev.',pipe:'Ideias'};
+  document.querySelectorAll('.fbtn[data-f]').forEach(btn=>{const f=btn.dataset.f;if(f in cnt)btn.textContent=`${lbl[f]} (${cnt[f]})`;});
 }
 function updateKPIs(){
   const total=projects.length;
   const ativos=projects.filter(p=>['andamento','integracao','dev'].includes(p.status)).length;
-  const totalHC=projects.reduce((acc,p)=>acc+(parseInt(p.hc)||0),0);
+  const totalFTE=projects.reduce((acc,p)=>acc+(parseInt(p.fte)||0),0);
   const pipe=projects.filter(p=>p.status==='pipe').length;
   document.getElementById('kpi-total').textContent=total;
   document.getElementById('kpi-ativos').textContent=ativos;
-  document.getElementById('kpi-hc').textContent=totalHC;
+  document.getElementById('kpi-hc').textContent=totalFTE;
   document.getElementById('kpi-pipe').textContent=pipe;
   const pct=v=>total?Math.round(v/total*100)+'%':'0%';
   document.getElementById('kbar-total').style.width='100%';
   document.getElementById('kbar-ativos').style.width=pct(ativos);
-  document.getElementById('kbar-hc').style.width=totalHC>0?'100%':'0%';
+  document.getElementById('kbar-hc').style.width=totalFTE>0?'100%':'0%';
   document.getElementById('kbar-pipe').style.width=pct(pipe);
 }
 function setFilter(btn){document.querySelectorAll('.fbtn[data-f]').forEach(b=>b.classList.remove('on'));btn.classList.add('on');curFilter=btn.dataset.f;curImpact=null;document.querySelectorAll('.fbtn[data-i]').forEach(b=>b.classList.remove('on'));renderAll();}
