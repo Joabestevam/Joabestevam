@@ -1830,12 +1830,6 @@ function renderAll(){
   document.getElementById('sec-pipe-cnt').textContent=`${cP} projeto${cP!==1?'s':''}`;
   document.getElementById('noResults').style.display=cT===0?'block':'none';
   updateKPIs();
-  updateFilterCounts();
-}
-function updateFilterCounts(){
-  const cnt={all:projects.length,andamento:projects.filter(p=>p.status==='andamento').length,integracao:projects.filter(p=>p.status==='integracao').length,dev:projects.filter(p=>p.status==='dev').length,pipe:projects.filter(p=>p.status==='pipe').length};
-  const lbl={all:'Todos',andamento:'Andamento',integracao:'Integração',dev:'Dev.',pipe:'Ideias'};
-  document.querySelectorAll('.fbtn[data-f]').forEach(btn=>{const f=btn.dataset.f;if(f in cnt)btn.textContent=`${lbl[f]} (${cnt[f]})`;});
 }
 function updateKPIs(){
   const total=projects.length;
