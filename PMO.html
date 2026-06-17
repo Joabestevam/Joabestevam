@@ -1343,12 +1343,26 @@ function parseCSV(text){
   return result.length?result:null;
 }
 function exportCSV(){
-  const H1='Identificação;;Execução;;;;;;;;;;Valor / Ganhos;;;;;;Tecnologia / Integrações;;;PMO;;;Produtividade;;;';
-  const H2='Projeto/Agente;IA ou Automação;Objetivo;Status;Planejamento;Desenvolvimento;Integração;Testes;Produção;% Concluído;Data Início;Previsão Entrega;Ganho Esperado;Volumetria Atual (Mês);Headcount Dedicado Atual;Redução de Headcount (FTE);Tipo de Ganho;Ganho Financeiro Estimado (R$);Sistemas Envolvidos;Ferramentas;Status Integração;Dependências;Detalhes do Processo;Responsáveis;Impacto;Volumetria/Mês;Tempo Atual (min);Tempo com IA (min)';
+  const H1='Identificação;;;Execução;;;;;Datas;Ganhos & HC;Tecnologia;;PMO;;;Produtividade IA;;;;;';
+  const H2='Projeto/Agente;IA ou Automação;Objetivo;Status;Planejamento;Desenvolvimento;Integração;Testes;Produção;% Concluído;Data Início;Previsão Entrega;Ganhos Esperados;HC Dedicado;Sistemas Envolvidos;Ferramentas;Status Integração;Dependências;Detalhes;Responsáveis;Impacto;Volume Mensal;Tempo Atual (min);Tempo com IA (min);Horas/Mês Sem IA;Horas/Mês Com IA;Economia (%)';
   const STATUS={andamento:'Em andamento',integracao:'Em integração',dev:'Em desenvolvimento',pipe:'Em estruturação'};
   const fmtD=d=>{if(!d)return '';const[y,m,dd]=d.split('-');return `${dd}/${m}/${y}`;};
   const q=v=>!v?'':(String(v).includes('\n')||String(v).includes(';'))?'"'+String(v).replace(/"/g,'""')+'"':String(v);
-  const rows=projects.map(p=>{const ok=v=>v?'ok':'';const pct=['plan','dev','integr','testes','prod'].filter(k=>p.exec[k]).length*20;return[p.nome,p.tipo,p.desc,STATUS[p.status]||p.status,ok(p.exec.plan),ok(p.exec.dev),ok(p.exec.integr),ok(p.exec.testes),ok(p.exec.prod),pct+'%',fmtD(p.inicio),fmtD(p.entrega),q(p.ganhos.join('\n')),'',p.hc||'',p.fte||'',p.tipoganha||'',p.ganhofinanceiro||'',p.sistemas.join('/'),p.ferramentas||'',p.statintegr||'',p.risco||'',q(p.detalhes||''),q(p.responsaveis.join('\n')),p.impacto||'',p.volMes||'',p.tempoAtual||'',p.tempoIA||''].join(';');});
+  const rows=projects.map(p=>{
+    const ok=v=>v?'ok':'';
+    const pct=['plan','dev','integr','testes','prod'].filter(k=>p.exec[k]).length*20;
+    const st=calcEstatisticas(p);
+    return[
+      q(p.nome),q(p.tipo),q(p.desc),STATUS[p.status]||p.status,
+      ok(p.exec.plan),ok(p.exec.dev),ok(p.exec.integr),ok(p.exec.testes),ok(p.exec.prod),pct+'%',
+      fmtD(p.inicio),fmtD(p.entrega),
+      q(p.ganhos.join('\n')),p.hc||'',
+      q(p.sistemas.join('/')),q(p.ferramentas||''),q(p.statintegr||''),
+      q(p.risco||''),q(p.detalhes||''),q(p.responsaveis.join('\n')),p.impacto||'',
+      p.volMes||'',p.tempoAtual||'',p.tempoIA||'',
+      st.horasAtuais||'',st.hasIAData?st.horasComIA:'',st.hasIAData?st.eficienciaPct+'%':''
+    ].join(';');
+  });
   const csv=[H1,H2,...rows].join('\r\n');
   const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
   const url=URL.createObjectURL(blob);
